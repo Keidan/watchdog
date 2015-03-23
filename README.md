@@ -23,17 +23,17 @@ download the software :
 
 Usage
 =====
-watchdog options:
+_watchdog options_:
 - --help, -h: Print this help.
 - --config, -c: Load a config file.
 - --new, -n: Create a new config file.
 
-If no configuration file is passed as parameter.
-The application search a configuration file localized into the folder [CONFIG_DIR] and named: <the_application_name>.xml
-It's possible to create symbolic links with several configuration files:
-ln -s watchdog watchdog-foo
-watchdog-foo -n
-now you can edit the config file [CONFIG_DIR]/watchdog-foo
+If no configuration file is passed as parameter.<br/>
+The application search a configuration file localized into the folder [CONFIG_DIR] and named: ```<the_application_name>.xml```<br/>
+It's possible to create symbolic links with several configuration files:<br/>
+```ln -s watchdog watchdog-foo```<br/>
+```watchdog-foo -n```<br/>
+now you can edit the config file [CONFIG_DIR]/watchdog-foo<br/>
  	
 
 License (like GPL)
