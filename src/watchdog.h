@@ -32,12 +32,16 @@
 
 #define EMPTY_CONFIG_FILE "\
 <?xml version=\"1.0\" encoding=\"utf-8\"?>\n\
+<!-- The process name eg with /bin/ls name=\"ls\" -->\n\
 <process name=\"foo\">\n\
+  <!-- Optional, if the file is not in the PATH -->\n\
   <path></path>\n\
   <args>\n\
+    <!-- Optional, arguments list -->\n\
     <arg></arg>\n\
   </args>\n\
   <envs>\n\
+    <!-- Optional, environment variables list -->\n\
     <env name=\"\" value=\"\"/>\n\
   </envs>\n\
 </process>\n"
