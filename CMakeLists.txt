@@ -50,7 +50,7 @@ message("-- Dristrib: ${DISTRIBUTION}")
 message("-- Arch: ${ARCH}")
 message("-- Config dir: ${CONFIG_DIR}")
 
-add_definitions(-DCONFIG_DIR="${CONFIG_FILE_FOLDER}")
+add_definitions(-DCONFIG_FILE_FOLDER="${CONFIG_DIR}")
 
 # removes generated files with 'make clean-all'
 add_custom_target(clean-cmake
