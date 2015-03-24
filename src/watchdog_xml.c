@@ -93,7 +93,7 @@ int watchdog_xml_load(const char* filename, struct watchdog_xml_s* process) {
 
       WD_ALLOC_NODE(item, struct watchdog_xml_list_s, "Unable to allocate the memory for the argument item", leave);
       ALLOC_VALUE(ret, len, value, item->value);
-      WD_APPEND_NODE(process->args, item);
+      WD_APPEND_NODE(process->args, item, process->args_count);
       process->args_count++;
     }
     xmlFree(value);
@@ -134,7 +134,8 @@ int watchdog_xml_load(const char* filename, struct watchdog_xml_s* process) {
 	  if(strlen((char*)value)) {
 	    WD_ALLOC_NODE(item, struct watchdog_xml_list_s, "Unable to allocate the memory for the argument item", leave);
 	    ALLOC_VALUE(ret, len, value, item->value);
-	    WD_APPEND_NODE(process->args, item);
+	    printf("Add value: '%s'\n", value);
+	    WD_APPEND_NODE(process->args, item, process->args_count);
 	    process->args_count++;
 	  }
 	  xmlFree(value);
@@ -170,8 +171,8 @@ int watchdog_xml_load(const char* filename, struct watchdog_xml_s* process) {
 	      strcpy(item->value, (char*)value);
 	      strcat(item->value, "=");
 	      strcat(item->value, (char*)value2);
+	      WD_APPEND_NODE(process->envs, item, process->envs_count);
 	      process->envs_count++;
-	      WD_APPEND_NODE(process->envs, item);
 	    }
 	    if(value) xmlFree(value);
 	    if(value2) xmlFree(value2);
@@ -198,6 +199,8 @@ int watchdog_xml_load(const char* filename, struct watchdog_xml_s* process) {
     ALLOC_VALUE(ret, len, p, process->path);
   }
   watchdog_utils_complete_env(process);
+  if(process->args)
+    watchdog_utils_sort_list(&process->args);
 leave:
   if(doc) xmlFreeDoc(doc);
   xmlCleanupParser();

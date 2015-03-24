@@ -60,7 +60,8 @@
     memset(node, 0, sizeof(type));			\
   } while(0)
 
-  #define WD_APPEND_NODE(root, node) do {      	\
+  #define WD_APPEND_NODE(root, node, idx) do {	\
+    node->index = idx;				\
     if(!root)					\
       root = node;				\
     else {					\
@@ -76,6 +77,7 @@
    ****************/
   struct watchdog_xml_list_s {
       char* value;
+      int index;
       struct watchdog_xml_list_s *next;
   };
   struct watchdog_xml_s {
@@ -144,6 +146,13 @@
    * @param array The output array.
    */
   void watchdog_utils_conver_to_array(struct watchdog_xml_list_s *root, int count, char ***array);
+
+  /**
+   * @fn void watchdog_utils_sort_list(struct watchdog_xml_list_s** root)
+   * @brief Sort a linkedlist in ascending mode.
+   * @param root A pointer to the linkedlist.
+   */
+  void watchdog_utils_sort_list(struct watchdog_xml_list_s** root);
 
   /****************
    * RUN

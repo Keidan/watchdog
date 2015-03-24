@@ -116,7 +116,8 @@ int watchdog_utils_complete_env(struct watchdog_xml_s* process) {
       }
       bzero(it->value, len);
       strcpy(it->value, env);
-      WD_APPEND_NODE(process->envs, it);
+      WD_APPEND_NODE(process->envs, it, process->envs_count);
+      process->envs_count++;
     }
   }
 leave:
@@ -148,3 +149,65 @@ void watchdog_utils_conver_to_array(struct watchdog_xml_list_s *root, int count,
   (*array)[i] = NULL;
 }
 
+
+
+/**
+ * @fn void watchdog_utils_sort_list(struct watchdog_xml_list_s** root)
+ * @brief Sort a linkedlist in ascending mode.
+ * @param root A pointer to the linkedlist.
+ */
+void watchdog_utils_sort_list(struct watchdog_xml_list_s** root) {
+  struct watchdog_xml_list_s* current, *prev=NULL;
+  struct watchdog_xml_list_s* compared, *prev2=NULL;
+  struct watchdog_xml_list_s* temp;
+  current=*root;
+  while(current!=NULL) {
+    compared=current->next;
+    while(compared!=NULL) {
+      if(current->index>compared->index) {
+	if(current==*root) {
+	  if(compared==current->next) {
+	    /*CASE 1: */
+	    /* Replacing the first node with */
+	    /* the next node in the list */
+	    current->next=compared->next;
+	    temp=current;
+	    current=compared;
+	    compared->next=temp;
+	    *root=compared;
+	  } else {
+	    /*CASE 2: */
+	    /* Replacing the first node with a */
+	    /* non consecutive node within the list */
+	    temp=current->next;
+	    current->next=compared->next;
+	    prev2->next=current;
+	    compared->next=temp;
+	    current=compared;
+	    *root=compared;
+	  }
+	} else {
+	  if(current->next==compared) {
+	    /*CASE 3: Replacing consecutive nodes */
+	    prev->next=compared;
+	    current->next=compared->next;
+	    compared->next=current;
+	    current=prev->next;
+	  } else  {
+	    /*CASE 4: Replacing non consecutive nodes */
+	    prev->next=compared;
+	    prev2->next=current;
+	    temp=compared->next;
+	    compared->next=current->next;
+	    current->next=temp;
+	    current=compared;
+	  }
+	}
+      }
+      prev2=compared;
+      compared=compared->next;
+    }
+    prev=current;
+    current=current->next;
+  }
+}
