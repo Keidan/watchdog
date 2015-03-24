@@ -29,10 +29,11 @@ char filename[MAX_FILENAME];
 struct watchdog_xml_s xml;
 
 static const struct option long_options[] = { 
-    { "help"    , 0, NULL, 'h' },
-    { "config"  , 1, NULL, 'c' },
-    { "new"     , 0, NULL, 'n' },
-    { NULL      , 0, NULL, 0   } 
+    { "help"       , 0, NULL, 'h' },
+    { "config"     , 1, NULL, 'c' },
+    { "directory"  , 1, NULL, 'd' },
+    { "new"        , 0, NULL, 'n' },
+    { NULL         , 0, NULL, 0   } 
 };
 
 static void m_exit(void);
@@ -42,6 +43,7 @@ static void usage(int err);
 
 int main(int argc, char** argv) {
   char c, **args = NULL, **envs = NULL;
+  _Bool n = 0;
   path_t path;
   FILE* f;
   struct sigaction sa;
@@ -53,46 +55,56 @@ int main(int argc, char** argv) {
   (void)sigaction(SIGTERM, &sa, NULL);
 
   const char* bname = basename(argv[0]);
-
-  /* init the default filename */
   bzero(path, MAX_FILENAME);
   bzero(filename, MAX_FILENAME);
-  strcpy(path, CONFIG_FILE_FOLDER);
-  if(path[strlen(path)] != '/')
-    strcat(path, "/");
-  strcpy(filename, path);
-  strcat(filename, bname);
-  strcat(filename, ".xml");
+
   /* parse the arguments */
   int opt;
-  while ((opt = getopt_long(argc, argv, "hc:n", long_options, NULL)) != -1) {
+  while ((opt = getopt_long(argc, argv, "hc:nd:", long_options, NULL)) != -1) {
     switch (opt) {
       case 'h': usage(0); break;
       case 'c': /* configuration file */
 	strncpy(filename, optarg, MAX_FILENAME);
 	break;
+      case 'd': /* directory */
+	strncpy(path, optarg, MAX_FILENAME);
+	break;
       case 'n':
-	do {
-	  f = fopen(filename, "wx");
-	  if (!f && errno == EEXIST) {
-	    printf("Are you sure you want to overwrite the existing file? (y/N):");
-	    fscanf(stdin, "%c", &c);
-	    if(c == 'y' || c == 'Y') {
-	      unlink(filename);
-	    } else return EXIT_FAILURE;
-	  } else if(!f) {
-	    fprintf(stderr, "Unable to create the file %s: (%d) %s\n", filename, errno, strerror(errno));
-	    return EXIT_FAILURE;
-	  } else break;
-	} while(1);
-	fwrite(EMPTY_CONFIG_FILE, 1, strlen(EMPTY_CONFIG_FILE), f);
-	fclose(f);
-	return EXIT_SUCCESS;
+	n = 1;
+	break;
       default: /* '?' */
 	fprintf(stderr, "Unknown option '%c'\n", opt);
 	usage(EXIT_FAILURE);
 	break;
     }
+  }
+
+  /* init the default filename */
+  if(!strlen(path))
+    strcpy(path, CONFIG_FILE_FOLDER);
+  if(path[strlen(path)] != '/')
+    strcat(path, "/");
+  strcpy(filename, path);
+  strcat(filename, bname);
+  strcat(filename, ".xml");
+
+  if(n) {
+    do {
+      f = fopen(filename, "wx");
+      if (!f && errno == EEXIST) {
+	printf("Are you sure you want to overwrite the existing file? (y/N):");
+	fscanf(stdin, "%c", &c);
+	if(c == 'y' || c == 'Y') {
+	  unlink(filename);
+	} else return EXIT_FAILURE;
+      } else if(!f) {
+	fprintf(stderr, "Unable to create the file %s: (%d) %s\n", filename, errno, strerror(errno));
+	return EXIT_FAILURE;
+      } else break;
+    } while(1);
+    fwrite(EMPTY_CONFIG_FILE, 1, strlen(EMPTY_CONFIG_FILE), f);
+    fclose(f);
+    return EXIT_SUCCESS;
   }
   
   /* load the config file */
@@ -101,6 +113,12 @@ int main(int argc, char** argv) {
 
   watchdog_utils_conver_to_array(xml.args, xml.args_count, &args);
   watchdog_utils_conver_to_array(xml.envs, xml.envs_count, &envs);
+
+  char** temp;
+  for(temp = args; *temp; ++temp) {
+    printf("Ar: '%s'\n", *temp);
+  }
+  exit(0);
   
   watchdog_respawn(xml.path, args, envs);
   if(args) free(args);
@@ -112,6 +130,7 @@ int main(int argc, char** argv) {
 static void usage(int err) {
   fprintf(stdout, "usage: watchdog options\n");
   fprintf(stdout, "\t--help, -h: Print this help.\n");
+  fprintf(stdout, "\t--directory, -d: The directory to search the configuration file (default:%s).\n", CONFIG_FILE_FOLDER);
   fprintf(stdout, "\t--config, -c: Load a config file.\n");
   fprintf(stdout, "\t--new, -n: Create a new config file.\n");
   fprintf(stdout, "\tIf no configuration file is passed as parameter.\n");
