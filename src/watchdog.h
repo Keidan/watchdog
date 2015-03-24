@@ -50,12 +50,21 @@
     #define CONFIG_FILE_FOLDER "/etc"
   #endif
 
-  #define WD_ALLOC_NODE(node, type, err, goto_lbl) do{	\
+
+  #define WD_STRALLOCCPY(str, tocopy, excond) do {	\
+    str = malloc(strlen(tocopy) + 1);			\
+    if(!str) {						\
+      fprintf(stderr, "Not enough memory!\n");		\
+      excond;						\
+    }							\
+    strcpy(str, tocopy);				\
+  } while(0);
+
+  #define WD_ALLOC_NODE(node, type, err, excond) do{	\
     node = malloc(sizeof(type));			\
     if(!node) {						\
-      ret = -1;						\
       fprintf(stderr, err);				\
-      goto goto_lbl;					\
+      excond;						\
     }							\
     memset(node, 0, sizeof(type));			\
   } while(0)

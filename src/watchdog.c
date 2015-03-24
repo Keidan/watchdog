@@ -28,11 +28,17 @@ pid_t child = -1;
 char filename[MAX_FILENAME];
 struct watchdog_xml_s xml;
 
+
+
 static const struct option long_options[] = { 
     { "help"       , 0, NULL, 'h' },
     { "config"     , 1, NULL, 'c' },
     { "directory"  , 1, NULL, 'd' },
-    { "new"        , 0, NULL, 'n' },
+    { "new"        , 0, NULL, 'z' },
+    { "path"       , 1, NULL, 'p' },
+    { "name"       , 1, NULL, 'n' },
+    { "arg"        , 1, NULL, 'a' },
+    { "env"        , 1, NULL, 'e' },
     { NULL         , 0, NULL, 0   } 
 };
 
@@ -43,10 +49,12 @@ static void usage(int err);
 
 int main(int argc, char** argv) {
   char c, **args = NULL, **envs = NULL;
-  _Bool n = 0;
+  _Bool z = 0;
   path_t path;
   FILE* f;
   struct sigaction sa;
+  struct watchdog_xml_list_s *item;
+
   bzero(&xml, sizeof(struct watchdog_xml_s));
   atexit(m_exit);
   memset(&sa, 0, sizeof(struct sigaction));
@@ -57,10 +65,11 @@ int main(int argc, char** argv) {
   const char* bname = basename(argv[0]);
   bzero(path, MAX_FILENAME);
   bzero(filename, MAX_FILENAME);
+  xml.args_count = 1; /* anticipation for the name field */
 
   /* parse the arguments */
   int opt;
-  while ((opt = getopt_long(argc, argv, "hc:nd:", long_options, NULL)) != -1) {
+  while ((opt = getopt_long(argc, argv, "hc:zd:n:a:e:p:", long_options, NULL)) != -1) {
     switch (opt) {
       case 'h': usage(0); break;
       case 'c': /* configuration file */
@@ -69,8 +78,30 @@ int main(int argc, char** argv) {
       case 'd': /* directory */
 	strncpy(path, optarg, MAX_FILENAME);
 	break;
-      case 'n':
-	n = 1;
+      case 'z': /* new */
+	z = 1;
+	break;
+      case 'p': /* path */
+	WD_STRALLOCCPY(xml.path, optarg, return EXIT_FAILURE);
+	break;
+      case 'n': /* name */
+	WD_STRALLOCCPY(xml.name, optarg, return EXIT_FAILURE);
+	WD_ALLOC_NODE(item, struct watchdog_xml_list_s, "Unable to allocate the memory for the argument item", return EXIT_FAILURE);
+	WD_STRALLOCCPY(item->value, optarg, return EXIT_FAILURE);
+	WD_APPEND_NODE(xml.args, item, xml.args_count);
+	xml.args_count++;
+	break;
+      case 'a': /* arg */
+	WD_ALLOC_NODE(item, struct watchdog_xml_list_s, "Unable to allocate the memory for the argument item", return EXIT_FAILURE);
+	WD_STRALLOCCPY(item->value, optarg, return EXIT_FAILURE);
+	WD_APPEND_NODE(xml.args, item, xml.args_count);
+	xml.args_count++;
+	break;
+      case 'e': /* env */
+	WD_ALLOC_NODE(item, struct watchdog_xml_list_s, "Unable to allocate the memory for the argument item", return EXIT_FAILURE);
+	WD_STRALLOCCPY(item->value, optarg, return EXIT_FAILURE);
+	WD_APPEND_NODE(xml.envs, item, xml.envs_count);
+	xml.envs_count++;
 	break;
       default: /* '?' */
 	fprintf(stderr, "Unknown option '%c'\n", opt);
@@ -78,47 +109,57 @@ int main(int argc, char** argv) {
 	break;
     }
   }
-
-  /* init the default filename */
-  if(!strlen(path))
-    strcpy(path, CONFIG_FILE_FOLDER);
-  if(path[strlen(path)] != '/')
-    strcat(path, "/");
-  strcpy(filename, path);
-  strcat(filename, bname);
-  strcat(filename, ".xml");
-
-  if(n) {
-    do {
-      f = fopen(filename, "wx");
-      if (!f && errno == EEXIST) {
-	printf("Are you sure you want to overwrite the existing file? (y/N):");
-	fscanf(stdin, "%c", &c);
-	if(c == 'y' || c == 'Y') {
-	  unlink(filename);
-	} else return EXIT_FAILURE;
-      } else if(!f) {
-	fprintf(stderr, "Unable to create the file %s: (%d) %s\n", filename, errno, strerror(errno));
-	return EXIT_FAILURE;
-      } else break;
-    } while(1);
-    fwrite(EMPTY_CONFIG_FILE, 1, strlen(EMPTY_CONFIG_FILE), f);
-    fclose(f);
-    return EXIT_SUCCESS;
-  }
   
-  /* load the config file */
-  if(watchdog_xml_load(filename, &xml))
-    return EXIT_FAILURE;
+  if(!xml.name) {
+    /* init the default filename */
+    if(!strlen(path))
+      strcpy(path, CONFIG_FILE_FOLDER);
+    if(path[strlen(path)] != '/')
+      strcat(path, "/");
+    strcpy(filename, path);
+    strcat(filename, bname);
+    strcat(filename, ".xml");
 
+    if(z) {
+      do {
+	f = fopen(filename, "wx");
+	if (!f && errno == EEXIST) {
+	  printf("Are you sure you want to overwrite the existing file? (y/N):");
+	  fscanf(stdin, "%c", &c);
+	  if(c == 'y' || c == 'Y') {
+	    unlink(filename);
+	  } else return EXIT_FAILURE;
+	} else if(!f) {
+	  fprintf(stderr, "Unable to create the file %s: (%d) %s\n", filename, errno, strerror(errno));
+	  return EXIT_FAILURE;
+	} else break;
+      } while(1);
+      fwrite(EMPTY_CONFIG_FILE, 1, strlen(EMPTY_CONFIG_FILE), f);
+      fclose(f);
+      return EXIT_SUCCESS;
+    }
+  
+    /* load the config file */
+    if(watchdog_xml_load(filename, &xml))
+      return EXIT_FAILURE;
+  }
+  /* prepare the path and find the binary */
+  if(!xml.path || !strlen(xml.path)) {
+    path_t p;
+    if(watchdog_utils_find_file(xml.name, p)) {
+      fprintf(stderr, "The file '%s' was not found.\n", xml.name);
+      return EXIT_FAILURE;
+    }
+    WD_STRALLOCCPY(xml.path, p, return EXIT_FAILURE);
+  }
+  /* add the parent env variables */
+  watchdog_utils_complete_env(&xml);
+  /* sort the arguments */
+  watchdog_utils_sort_list(&xml.args);
+
+  /* convert linkedlist to char** */
   watchdog_utils_conver_to_array(xml.args, xml.args_count, &args);
   watchdog_utils_conver_to_array(xml.envs, xml.envs_count, &envs);
-
-  char** temp;
-  for(temp = args; *temp; ++temp) {
-    printf("Ar: '%s'\n", *temp);
-  }
-  exit(0);
   
   watchdog_respawn(xml.path, args, envs);
   if(args) free(args);
@@ -130,9 +171,15 @@ int main(int argc, char** argv) {
 static void usage(int err) {
   fprintf(stdout, "usage: watchdog options\n");
   fprintf(stdout, "\t--help, -h: Print this help.\n");
+  fprintf(stdout, "Mode standalone:\n");
+  fprintf(stdout, "\t--path, -p: The process path (optional if the binary is in the PATH).\n");
+  fprintf(stdout, "\t--name, -n: The process name.\n");
+  fprintf(stdout, "\t--arg, -a: The process argument (repeat for more).\n");
+  fprintf(stdout, "\t--env, -e: The process environment variable (repeat for more).\n");
+  fprintf(stdout, "Mode file:\n");
   fprintf(stdout, "\t--directory, -d: The directory to search the configuration file (default:%s).\n", CONFIG_FILE_FOLDER);
   fprintf(stdout, "\t--config, -c: Load a config file.\n");
-  fprintf(stdout, "\t--new, -n: Create a new config file.\n");
+  fprintf(stdout, "\t--new, -z: Create a new config file.\n");
   fprintf(stdout, "\tIf no configuration file is passed as parameter.\n");
   fprintf(stdout, "\tThe application search a configuration file localized into the folder %s and named: <the_application_name>.xml\n", CONFIG_FILE_FOLDER);
   fprintf(stdout, "\tIt's possible to create symbolic links with several configuration files:\n");

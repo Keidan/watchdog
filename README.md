@@ -25,6 +25,12 @@ Usage
 =====
 _watchdog options_:
 - --help, -h: Print this help.
+Mode standalone:
+- --path, -p: The process path (optional if the binary is in the PATH).
+- --name, -n: The process name.
+- --arg, -a: The process argument (repeat for more).
+- --env, -e: The process environment variable (repeat for more).
+Mode file:
 - --config, -c: Load a config file.
 - --new, -n: Create a new config file.
 

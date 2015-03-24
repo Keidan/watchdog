@@ -104,7 +104,7 @@ int watchdog_utils_complete_env(struct watchdog_xml_s* process) {
       }
     }
     if(!found) {
-      WD_ALLOC_NODE(it, struct watchdog_xml_list_s, "Unable to allocate the memory for the argument item", leave);
+      WD_ALLOC_NODE(it, struct watchdog_xml_list_s, "Unable to allocate the memory for the argument item", ret = -1; goto leave);
       len = strlen(env) + 1;
       it->value = malloc(len);
       if(!it->value) {
@@ -133,20 +133,20 @@ leave:
  */
 void watchdog_utils_conver_to_array(struct watchdog_xml_list_s *root, int count, char ***array) {
   struct watchdog_xml_list_s *cpy, *it;
-  int i = 0;
+  int i = 0, l;
   if(!root) {
     *array = NULL;
     return;
   }
-  *array = malloc(count + 1);
-  bzero(*array, count + 1);
+  l = (count + 1)*sizeof(void*);
+  *array = malloc(l);
+  bzero(*array, l);
   cpy = root;
   while(cpy) {
     it = cpy;
     cpy = cpy->next;
     (*array)[i++] = it->value;
   }
-  (*array)[i] = NULL;
 }
 
 

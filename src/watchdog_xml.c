@@ -91,7 +91,7 @@ int watchdog_xml_load(const char* filename, struct watchdog_xml_s* process) {
     if(!xmlStrcmp(attribute->name, __XMLCAST("name"))) {
       ALLOC_VALUE(ret, len, value, process->name);
 
-      WD_ALLOC_NODE(item, struct watchdog_xml_list_s, "Unable to allocate the memory for the argument item", leave);
+      WD_ALLOC_NODE(item, struct watchdog_xml_list_s, "Unable to allocate the memory for the argument item", ret = -1; goto leave);
       ALLOC_VALUE(ret, len, value, item->value);
       WD_APPEND_NODE(process->args, item, process->args_count);
       process->args_count++;
@@ -132,7 +132,7 @@ int watchdog_xml_load(const char* filename, struct watchdog_xml_s* process) {
 	if (!xmlStrcmp(curL2->name, __XMLCAST("arg"))){
 	  value = xmlNodeGetContent(curL2);
 	  if(strlen((char*)value)) {
-	    WD_ALLOC_NODE(item, struct watchdog_xml_list_s, "Unable to allocate the memory for the argument item", leave);
+	    WD_ALLOC_NODE(item, struct watchdog_xml_list_s, "Unable to allocate the memory for the argument item", ret = -1; goto leave);
 	    ALLOC_VALUE(ret, len, value, item->value);
 	    printf("Add value: '%s'\n", value);
 	    WD_APPEND_NODE(process->args, item, process->args_count);
@@ -158,7 +158,7 @@ int watchdog_xml_load(const char* filename, struct watchdog_xml_s* process) {
 	  }
 	  if(value && value2) {
 	    if(strlen((char*)value) && strlen((char*)value2)) {
-	      WD_ALLOC_NODE(item, struct watchdog_xml_list_s, "Unable to allocate the memory for the evironment variable item", leave);
+	      WD_ALLOC_NODE(item, struct watchdog_xml_list_s, "Unable to allocate the memory for the evironment variable item", ret = -1; goto leave); 
 	      len = strlen((char*)value) + strlen((char*)value2) + 2;
 	      item->value = malloc(len);
 	      if(!item->value) {
@@ -189,18 +189,7 @@ int watchdog_xml_load(const char* filename, struct watchdog_xml_s* process) {
     }
     curL1 = curL1->next;
   }
-  if(!process->path || !strlen(process->path)) {
-    path_t p;
-    if(watchdog_utils_find_file(process->name, p)) {
-      ret = -1;
-      fprintf(stderr, "The file '%s' was not found.\n", process->name);
-      goto leave;
-    }
-    ALLOC_VALUE(ret, len, p, process->path);
-  }
-  watchdog_utils_complete_env(process);
-  if(process->args)
-    watchdog_utils_sort_list(&process->args);
+
 leave:
   if(doc) xmlFreeDoc(doc);
   xmlCleanupParser();
