@@ -134,7 +134,6 @@ int watchdog_xml_load(const char* filename, struct watchdog_xml_s* process) {
 	  if(strlen((char*)value)) {
 	    WD_ALLOC_NODE(item, struct watchdog_xml_list_s, "Unable to allocate the memory for the argument item", ret = -1; goto leave);
 	    ALLOC_VALUE(ret, len, value, item->value);
-	    printf("Add value: '%s'\n", value);
 	    WD_APPEND_NODE(process->args, item, process->args_count);
 	    process->args_count++;
 	  }
