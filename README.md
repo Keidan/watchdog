@@ -16,8 +16,6 @@ download the software :
 	
 	git clone git://github.com/Keidan/watchdog.git
 	cd watchdog
-	git submodule init
-	git submodule update
 	cmake -DDISTRIBUTION=[debug|release] -DCONFIG_DIR=[/etc] .
 	make
 
