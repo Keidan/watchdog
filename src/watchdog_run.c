@@ -42,6 +42,7 @@ watchdog_spawn_result_et watchdog_spawn(char* name, char** args, char** envs) {
       if(execve(name, args, envs) == -1) {
 	fprintf(stderr, "Unable to starts the process '%s': (%d) %s.\n", args[0], errno, strerror(errno));
       }
+      _exit(0);
       return WD_SPAWN_CHILD;
     }
     else {//Parent process
