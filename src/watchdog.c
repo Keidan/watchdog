@@ -160,7 +160,13 @@ int main(int argc, char** argv) {
   /* convert linkedlist to char** */
   watchdog_utils_conver_to_array(xml.args, xml.args_count, &args);
   watchdog_utils_conver_to_array(xml.envs, xml.envs_count, &envs);
-  
+  if(!strlen(filename)) {
+    /* init the default filename */
+    if(xml.path[strlen(xml.path)] != '/')
+      strcat(xml.path, "/");
+    strcpy(filename, xml.path);
+    strcat(filename, args[0]);
+  }
   watchdog_respawn(xml.path, args, envs);
   if(args) free(args);
   if(envs) free(envs);
