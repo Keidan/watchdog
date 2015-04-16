@@ -153,10 +153,6 @@ int main(int argc, char** argv) {
     }
     WD_STRALLOCCPY(xml.path, p, return EXIT_FAILURE);
   }
-  strcpy(cmd_path, xml.path);
-  if(cmd_path[strlen(cmd_path) - 1] != '/')
-    strcat(cmd_path, "/");
-  strcat(cmd_path, args[0]);
   
   /* add the parent env variables */
   watchdog_utils_complete_env(&xml);
@@ -166,6 +162,12 @@ int main(int argc, char** argv) {
   /* convert linkedlist to char** */
   watchdog_utils_conver_to_array(xml.args, xml.args_count, &args);
   watchdog_utils_conver_to_array(xml.envs, xml.envs_count, &envs);
+  
+  
+  strcpy(cmd_path, xml.path);
+  if(cmd_path[strlen(cmd_path) - 1] != '/')
+    strcat(cmd_path, "/");
+  strcat(cmd_path, args[0]);
 
   watchdog_respawn(cmd_path, args, envs);
   if(args) free(args);
