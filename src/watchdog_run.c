@@ -40,7 +40,7 @@ watchdog_spawn_result_et watchdog_spawn(char* name, char** args, char** envs) {
   if((child = fork()) >= 0) {// fork was successful
     if(child == 0) {// child process
       if(execve(name, args, envs) == -1) {
-	fprintf(stderr, "Unable to starts the process '%s': (%d) %s.\n", args[0], errno, strerror(errno));
+	fprintf(stderr, "Unable to starts the process name:'%s', path: '%s': (%d) %s.\n", args[0], name, errno, strerror(errno));
       }
       _exit(0);
       return WD_SPAWN_CHILD;
