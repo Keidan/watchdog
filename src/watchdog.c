@@ -50,7 +50,7 @@ static void usage(int err);
 int main(int argc, char** argv) {
   char c, **args = NULL, **envs = NULL;
   _Bool z = 0;
-  path_t path;
+  path_t path, cmd_path;
   FILE* f;
   struct sigaction sa;
   struct watchdog_xml_list_s *item;
@@ -65,6 +65,7 @@ int main(int argc, char** argv) {
   const char* bname = basename(argv[0]);
   bzero(path, MAX_FILENAME);
   bzero(filename, MAX_FILENAME);
+  bzero(cmd_path, MAX_FILENAME);
   xml.args_count = 1; /* anticipation for the name field */
 
   /* parse the arguments */
@@ -114,7 +115,7 @@ int main(int argc, char** argv) {
     /* init the default filename */
     if(!strlen(path))
       strcpy(path, CONFIG_FILE_FOLDER);
-    if(path[strlen(path)] != '/')
+    if(path[strlen(path) - 1] != '/')
       strcat(path, "/");
     strcpy(filename, path);
     strcat(filename, bname);
@@ -152,6 +153,11 @@ int main(int argc, char** argv) {
     }
     WD_STRALLOCCPY(xml.path, p, return EXIT_FAILURE);
   }
+  strcpy(cmd_path, xml.path);
+  if(cmd_path[strlen(cmd_path) - 1] != '/')
+    strcat(cmd_path, "/");
+  strcat(cmd_path, args[0]);
+  
   /* add the parent env variables */
   watchdog_utils_complete_env(&xml);
   /* sort the arguments */
@@ -160,14 +166,8 @@ int main(int argc, char** argv) {
   /* convert linkedlist to char** */
   watchdog_utils_conver_to_array(xml.args, xml.args_count, &args);
   watchdog_utils_conver_to_array(xml.envs, xml.envs_count, &envs);
-  if(!strlen(filename)) {
-    /* init the default filename */
-    if(xml.path[strlen(xml.path)] != '/')
-      strcat(xml.path, "/");
-    strcpy(filename, xml.path);
-    strcat(filename, args[0]);
-  }
-  watchdog_respawn(xml.path, args, envs);
+
+  watchdog_respawn(cmd_path, args, envs);
   if(args) free(args);
   if(envs) free(envs);
 
