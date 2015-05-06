@@ -50,6 +50,9 @@
     #define CONFIG_FILE_FOLDER "/etc"
   #endif
 
+  #ifndef PID_FOLDER
+    #define PID_FOLDER "/var/run"
+  #endif
 
   #define WD_STRALLOCCPY(str, tocopy, excond) do {	\
     str = malloc(strlen(tocopy) + 1);			\

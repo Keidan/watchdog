@@ -24,6 +24,8 @@
 #include <signal.h>
 #include <getopt.h>
 
+path_t pidfile;
+pid_t pid = -1;
 pid_t child = -1;
 char filename[MAX_FILENAME];
 struct watchdog_xml_s xml;
@@ -39,12 +41,14 @@ static const struct option long_options[] = {
     { "name"       , 1, NULL, 'n' },
     { "arg"        , 1, NULL, 'a' },
     { "env"        , 1, NULL, 'e' },
+    { "pid"        , 0, NULL, '0' },
+    { "pidfile"    , 1, NULL, '1' },
     { NULL         , 0, NULL, 0   } 
 };
 
 static void m_exit(void);
 static void sig_int(int s);
-static void usage(int err);
+static void usage(const char* name, int err);
 
 
 int main(int argc, char** argv) {
@@ -54,7 +58,9 @@ int main(int argc, char** argv) {
   FILE* f;
   struct sigaction sa;
   struct watchdog_xml_list_s *item;
+  
 
+  bzero(pidfile, sizeof(path_t));
   bzero(&xml, sizeof(struct watchdog_xml_s));
   atexit(m_exit);
   memset(&sa, 0, sizeof(struct sigaction));
@@ -70,9 +76,9 @@ int main(int argc, char** argv) {
 
   /* parse the arguments */
   int opt;
-  while ((opt = getopt_long(argc, argv, "hc:zd:n:a:e:p:", long_options, NULL)) != -1) {
+  while ((opt = getopt_long(argc, argv, "hc:zd:n:a:e:p:01:", long_options, NULL)) != -1) {
     switch (opt) {
-      case 'h': usage(0); break;
+      case 'h': usage(bname, 0); break;
       case 'c': /* configuration file */
 	strncpy(filename, optarg, MAX_FILENAME);
 	break;
@@ -81,6 +87,12 @@ int main(int argc, char** argv) {
 	break;
       case 'z': /* new */
 	z = 1;
+	break;
+      case '0': /* pid */
+	pid = getpid();
+	break;
+      case '1': /* pidfile */
+	strcpy(pidfile, optarg);
 	break;
       case 'p': /* path */
 	WD_STRALLOCCPY(xml.path, optarg, return EXIT_FAILURE);
@@ -106,9 +118,24 @@ int main(int argc, char** argv) {
 	break;
       default: /* '?' */
 	fprintf(stderr, "Unknown option '%c'\n", opt);
-	usage(EXIT_FAILURE);
+	usage(bname, EXIT_FAILURE);
 	break;
     }
+  }
+  if(strlen(pidfile) == 0)  sprintf(pidfile, "%s/%s.pid", PID_FOLDER, bname);
+  if(pid > 0) {
+    FILE *fpid = fopen(pidfile, "r");
+    if(fpid) {
+      fclose(fpid);
+      fprintf(stderr, "The pid file '%s' already exists!\n", pidfile);   
+      usage(bname, EXIT_FAILURE);   
+    }
+    fpid = fopen(pidfile, "w+");
+    if(fpid) {
+      fprintf(fpid, "%d\n", pid);
+      fclose(fpid);
+    } else 
+      fprintf(stderr, "Unable to create the pid file '%s': (%d) %s\n", pidfile, errno, strerror(errno));
   }
   
   if(!xml.name) {
@@ -176,9 +203,11 @@ int main(int argc, char** argv) {
   return EXIT_SUCCESS;
 }
 
-static void usage(int err) {
+static void usage(const char* name, int err) {
   fprintf(stdout, "usage: watchdog options\n");
   fprintf(stdout, "\t--help, -h: Print this help.\n");
+  fprintf(stdout, "\t--pid: Write the pid into the file pointed by pidfile.\n");
+  fprintf(stdout, "\t--pidfile: The file containing the pid (default: %s/%s.pid)\n", PID_FOLDER, name);
   fprintf(stdout, "Mode standalone:\n");
   fprintf(stdout, "\t--path, -p: The process path (optional if the binary is in the PATH).\n");
   fprintf(stdout, "\t--name, -n: The process name.\n");
@@ -203,5 +232,14 @@ static void m_exit(void) {
     child = -1;
   }
   watchdog_xml_unload(&xml);
+  if(pid > 0) {
+    pid_t _pid;
+    FILE *fpid = fopen(pidfile, "r");
+    if(fpid) {
+      fscanf(fpid, "%d", &_pid);
+      fclose(fpid);
+      if(_pid == pid) unlink(pidfile);
+    }
+  }
 }
 static void sig_int(int s) { exit(s); }
