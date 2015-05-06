@@ -66,6 +66,7 @@ int watchdog_utils_find_file(const char* name, path_t path) {
     f = fopen(path, "rb");
     if(!f) bzero(path, sizeof(path_t));
     else {
+      path[strlen(path) - (strlen(name) + 1)] = 0;
       fclose(f);
       break;
     }
