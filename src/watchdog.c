@@ -93,6 +93,7 @@ int main(int argc, char** argv) {
 	break;
       case '1': /* pidfile */
 	strcpy(pidfile, optarg);
+	pid = getpid();
 	break;
       case 'p': /* path */
 	WD_STRALLOCCPY(xml.path, optarg, return EXIT_FAILURE);
@@ -207,7 +208,7 @@ static void usage(const char* name, int err) {
   fprintf(stdout, "usage: watchdog options\n");
   fprintf(stdout, "\t--help, -h: Print this help.\n");
   fprintf(stdout, "\t--pid: Write the pid into the file pointed by pidfile.\n");
-  fprintf(stdout, "\t--pidfile: The file containing the pid (default: %s/%s.pid)\n", PID_FOLDER, name);
+  fprintf(stdout, "\t--pidfile: The file containing the pid (default: %s/%s.pid) (this option enable the support of the pid)\n", PID_FOLDER, name);
   fprintf(stdout, "Mode standalone:\n");
   fprintf(stdout, "\t--path, -p: The process path (optional if the binary is in the PATH).\n");
   fprintf(stdout, "\t--name, -n: The process name.\n");
