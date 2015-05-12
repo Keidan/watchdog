@@ -33,17 +33,18 @@ struct watchdog_xml_s xml;
 
 
 static const struct option long_options[] = { 
-    { "help"       , 0, NULL, 'h' },
-    { "config"     , 1, NULL, 'c' },
-    { "directory"  , 1, NULL, 'd' },
-    { "new"        , 0, NULL, 'z' },
-    { "path"       , 1, NULL, 'p' },
-    { "name"       , 1, NULL, 'n' },
-    { "arg"        , 1, NULL, 'a' },
-    { "env"        , 1, NULL, 'e' },
-    { "pid"        , 0, NULL, '0' },
-    { "pidfile"    , 1, NULL, '1' },
-    { NULL         , 0, NULL, 0   } 
+    { "help"                   , 0, NULL, 'h' },
+    { "config"                 , 1, NULL, 'c' },
+    { "directory"              , 1, NULL, 'd' },
+    { "new"                    , 0, NULL, 'z' },
+    { "path"                   , 1, NULL, 'p' },
+    { "name"                   , 1, NULL, 'n' },
+    { "arg"                    , 1, NULL, 'a' },
+    { "env"                    , 1, NULL, 'e' },
+    { "pid"                    , 0, NULL, '0' },
+    { "pidfile"                , 1, NULL, '1' },
+    { "disable-spam-detect"    , 0, NULL, '2' },
+    { NULL                     , 0, NULL, 0   } 
 };
 
 static void m_exit(void);
@@ -58,7 +59,7 @@ int main(int argc, char** argv) {
   FILE* f;
   struct sigaction sa;
   struct watchdog_xml_list_s *item;
-  
+  _Bool disable_spam_detect = 0;
 
   bzero(pidfile, sizeof(path_t));
   bzero(&xml, sizeof(struct watchdog_xml_s));
@@ -76,7 +77,7 @@ int main(int argc, char** argv) {
 
   /* parse the arguments */
   int opt;
-  while ((opt = getopt_long(argc, argv, "hc:zd:n:a:e:p:01:", long_options, NULL)) != -1) {
+  while ((opt = getopt_long(argc, argv, "hc:zd:n:a:e:p:01:2", long_options, NULL)) != -1) {
     switch (opt) {
       case 'h': usage(bname, 0); break;
       case 'c': /* configuration file */
@@ -84,6 +85,9 @@ int main(int argc, char** argv) {
 	break;
       case 'd': /* directory */
 	strncpy(path, optarg, MAX_FILENAME);
+	break;
+      case '2': /* disable-spam-detect */
+	disable_spam_detect = 1;
 	break;
       case 'z': /* new */
 	z = 1;
@@ -197,7 +201,7 @@ int main(int argc, char** argv) {
     strcat(cmd_path, "/");
   strcat(cmd_path, args[0]);
 
-  watchdog_respawn(cmd_path, args, envs);
+  watchdog_respawn(cmd_path, args, envs, disable_spam_detect);
   if(args) free(args);
   if(envs) free(envs);
 
@@ -207,6 +211,7 @@ int main(int argc, char** argv) {
 static void usage(const char* name, int err) {
   fprintf(stdout, "usage: watchdog options\n");
   fprintf(stdout, "\t--help, -h: Print this help.\n");
+  fprintf(stdout, "\t--disable-spam-detect: Disable the spamming detection.\n");
   fprintf(stdout, "\t--pid: Write the pid into the file pointed by pidfile.\n");
   fprintf(stdout, "\t--pidfile: The file containing the pid (default: %s/%s.pid) (this option enable the support of the pid)\n", PID_FOLDER, name);
   fprintf(stdout, "Mode standalone:\n");

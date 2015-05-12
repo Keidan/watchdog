@@ -23,8 +23,33 @@
 #include "watchdog.h"
 #include <stdint.h>
 
+
 extern char **environ;
 
+/**
+ * @fn double watchdog_utils_clock_elapsed(struct timespec s, struct timespec e)
+ * @brief Get the elapsed time in nanosec between 2 timespec.
+ * @param s Start value.
+ * @prama e End value.
+ * @return The elapsed time.
+ */
+double watchdog_utils_clock_elapsed(struct timespec s, struct timespec e) {
+  double elapsed = (double)(e.tv_sec - s.tv_sec);
+  elapsed += (double)(e.tv_nsec - s.tv_nsec) / NANO_VALUE;
+  return elapsed;
+}
+
+/**
+ * @fn int watchdog_utils_clock((struct timespec *ts)
+ * @brief Get the current time using the monotonic clock.
+ * @param ts The time.
+ * @return -1 on error else 0.
+ */
+int watchdog_utils_clock(struct timespec *ts) {
+  if (clock_gettime(CLOCK_MONOTONIC, ts) == -1)
+    return -1;
+  return 0;
+}
 
 /**
  * @fn int watchdog_utils_strindexof(const char* source, const char* needed)

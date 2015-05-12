@@ -24,17 +24,21 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+#define MINIMUM_RESPAWN_DELAY 0.050000
+#define MAX_RESPAWN_BEFORE_DELAY 5
+#define MINIMUM_COUNT_VALUE 1
+
 extern pid_t child;
 
 /**
- * @fn watchdog_spawn_result_et watchdog_spawn(char* name, char** args, char** envs)
+ * @fn int watchdog_spawn(char* name, char** args, char** envs)
  * @brief Start a process and wait for the exit.
  * @param name The process name.
  * @param args The process args.
  * @param envs The process envs.
- * @return The result code.
+ * @return -1 on error else 0.
  */
-watchdog_spawn_result_et watchdog_spawn(char* name, char** args, char** envs) {
+int watchdog_spawn(char* name, char** args, char** envs) {
   int status;
   pid_t w;
   if((child = fork()) >= 0) {// fork was successful
@@ -43,7 +47,6 @@ watchdog_spawn_result_et watchdog_spawn(char* name, char** args, char** envs) {
 	fprintf(stderr, "Unable to starts the process name:'%s', path: '%s': (%d) %s.\n", args[0], name, errno, strerror(errno));
       }
       _exit(0);
-      return WD_SPAWN_CHILD;
     }
     else {//Parent process
       w = waitpid(child, &status, WUNTRACED | WCONTINUED);
@@ -56,22 +59,42 @@ watchdog_spawn_result_et watchdog_spawn(char* name, char** args, char** envs) {
       child = 0;
     }
   } else// fork failed
-    return WD_SPAWN_ERROR;
-  return WD_SPAWN_PARENT;
+    return -1;
+  return 0;
 }
 
 /**
- * @fn watchdog_spawn_result_et watchdog_respawn(char* name, char** args, char** envs)
+ * @fn int watchdog_respawn(char* name, char** args, char** envs, _Bool disable_spam_detect)
  * @brief Start a process and restart if the process exit.
  * @param name The process name.
  * @param args The process args.
  * @param envs The process envs.
- * @return The result code.
+ * @param disable_spam_detect Disable the spam detection.
+ * @return -1 on error else 0.
  */
-watchdog_spawn_result_et watchdog_respawn(char* name, char** args, char** envs) {
-  watchdog_spawn_result_et result;
+int watchdog_respawn(char* name, char** args, char** envs, _Bool disable_spam_detect) {
+  int result;
+  struct timespec st, et;
+  double elapsed = .0f;
+  int count = MINIMUM_COUNT_VALUE;
+  int delay;
   do {
+    if(!disable_spam_detect) watchdog_utils_clock(&st);
     result = watchdog_spawn(name, args, envs);
-  } while(result == WD_SPAWN_PARENT);
+    if(result) break;
+    if(!disable_spam_detect) {
+      watchdog_utils_clock(&et);
+      elapsed = watchdog_utils_clock_elapsed(st, et);
+      if(elapsed < MINIMUM_RESPAWN_DELAY) {
+	if(count == MAX_RESPAWN_BEFORE_DELAY) {
+	  fprintf(stderr, "Too many restarts for the process '%s'.\n", args[0]);
+	  exit(EXIT_FAILURE);
+	}
+	count++;
+	delay = count * (elapsed*MICRO_VALUE);
+	usleep(delay);
+      } else count = MINIMUM_COUNT_VALUE;
+    }
+  } while(1);
   return result;
 }

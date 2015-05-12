@@ -29,6 +29,13 @@
   #include <errno.h>
   #include <string.h>
   #include <libgen.h>
+  #include <time.h>
+  #include <sys/time.h>
+
+
+  #define NANO_VALUE  1000000000.0
+  #define MICRO_VALUE 1000000.0
+
 
 #define EMPTY_CONFIG_FILE "\
 <?xml version=\"1.0\" encoding=\"utf-8\"?>\n\
@@ -166,30 +173,47 @@
    */
   void watchdog_utils_sort_list(struct watchdog_xml_list_s** root);
 
+  /**
+   * @fn int watchdog_utils_clock((struct timespec *ts)
+   * @brief Get the current time using the monotonic clock.
+   * @param ts The time.
+   * @return -1 on error else 0.
+   */
+  int watchdog_utils_clock(struct timespec *ts);
+
+  /**
+   * @fn double watchdog_utils_clock_elapsed(struct timespec s, struct timespec e)
+   * @brief Get the elapsed time in nanosec between 2 timespec.
+   * @param s Start value.
+   * @prama e End value.
+   * @return The elapsed time.
+   */
+  double watchdog_utils_clock_elapsed(struct timespec s, struct timespec e);
+
   /****************
    * RUN
    ****************/
-  typedef enum { WD_SPAWN_ERROR, WD_SPAWN_PARENT, WD_SPAWN_CHILD } watchdog_spawn_result_et;
 
   /**
-   * @fn watchdog_spawn_result_et watchdog_spawn(char* name, char** args, char** envs)
+   * @fn int watchdog_spawn(char* name, char** args, char** envs)
    * @brief Start a process and wait for the exit.
    * @param name The process name.
    * @param args The process args.
    * @param envs The process envs.
-   * @return The result code.
+   * @return -1 on error else 0.
    */
-  watchdog_spawn_result_et watchdog_spawn(char* name, char** args, char** envs);
+  int watchdog_spawn(char* name, char** args, char** envs);
 
   /**
-   * @fn watchdog_spawn_result_et watchdog_respawn(char* name, char** args, char** envs)
+   * @fn int watchdog_respawn(char* name, char** args, char** envs, _Bool disable_spam_detect)
    * @brief Start a process and restart if the process exit.
    * @param name The process name.
    * @param args The process args.
    * @param envs The process envs.
-   * @return The result code.
+   * @param disable_spam_detect Disable the spam detection.
+   * @return -1 on error else 0.
    */
-  watchdog_spawn_result_et watchdog_respawn(char* name, char** args, char** envs);
+  int watchdog_respawn(char* name, char** args, char** envs, _Bool disable_spam_detect);
 
 
 #endif /* __WATCHDOG_H__ */

@@ -71,7 +71,7 @@ file(GLOB_RECURSE bin_inc "${WATCHDOG_SRC_DIR}/*.h")
 
 # Executable configuration
 add_executable(watchdog ${bin_src} ${bin_inc})
-target_link_libraries(watchdog xml2)
+target_link_libraries(watchdog xml2 rt)
 
 
 
