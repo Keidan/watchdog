@@ -29,7 +29,7 @@ pid_t pid = -1;
 pid_t child = -1;
 char filename[MAX_FILENAME];
 struct watchdog_xml_s xml;
-
+struct owner_limit_s owner_limits[RLIM_NLIMITS];
 
 
 static const struct option long_options[] = { 
@@ -60,6 +60,7 @@ int main(int argc, char** argv) {
   struct sigaction sa;
   struct watchdog_xml_list_s *item;
   _Bool disable_spam_detect = 0;
+  int i;
 
   bzero(pidfile, sizeof(path_t));
   bzero(&xml, sizeof(struct watchdog_xml_s));
@@ -127,6 +128,7 @@ int main(int argc, char** argv) {
 	break;
     }
   }
+
   if(strlen(pidfile) == 0)  sprintf(pidfile, "%s/%s.pid", PID_FOLDER, bname);
   if(pid > 0) {
     FILE *fpid = fopen(pidfile, "r");
@@ -185,7 +187,13 @@ int main(int argc, char** argv) {
     }
     WD_STRALLOCCPY(xml.path, p, return EXIT_FAILURE);
   }
-  
+
+  /* get the owner limits */
+  for(i = 0; i < RLIM_NLIMITS; i++) {
+    if(owner_limits[i].id != RLIMIT_INVALID)
+      getrlimit(owner_limits[i].id, &owner_limits[i].rl);
+  }
+
   /* add the parent env variables */
   watchdog_utils_complete_env(&xml);
   /* sort the arguments */
