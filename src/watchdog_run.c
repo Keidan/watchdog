@@ -30,7 +30,7 @@
 #define MINIMUM_COUNT_VALUE 1
 
 extern pid_t child;
-extern struct owner_limit_s owner_limits[RLIM_NLIMITS];
+extern struct rlimit owner_limits[RLIM_NLIMITS];
 
 /**
  * @fn int watchdog_spawn(char* name, char** args, char** envs)
@@ -46,10 +46,8 @@ int watchdog_spawn(char* name, char** args, char** envs) {
   if((child = fork()) >= 0) {// fork was successful
     if(child == 0) {// child process
       /* set the owner limits */
-      for(i = 0; i < RLIM_NLIMITS; i++) {
-	if(owner_limits[i].id != RLIMIT_INVALID)
-	  setrlimit(owner_limits[i].id, &owner_limits[i].rl);
-      }
+      for(i = 0; i < RLIM_NLIMITS; i++)
+	setrlimit(i, &owner_limits[i]);
       if(execve(name, args, envs) == -1) {
 	fprintf(stderr, "Unable to starts the process name:'%s', path: '%s': (%d) %s.\n", args[0], name, errno, strerror(errno));
       }

@@ -29,7 +29,7 @@ pid_t pid = -1;
 pid_t child = -1;
 char filename[MAX_FILENAME];
 struct watchdog_xml_s xml;
-struct owner_limit_s owner_limits[RLIM_NLIMITS];
+struct rlimit owner_limits[RLIM_NLIMITS];
 
 
 static const struct option long_options[] = { 
@@ -189,10 +189,8 @@ int main(int argc, char** argv) {
   }
 
   /* get the owner limits */
-  for(i = 0; i < RLIM_NLIMITS; i++) {
-    if(owner_limits[i].id != RLIMIT_INVALID)
-      getrlimit(owner_limits[i].id, &owner_limits[i].rl);
-  }
+  for(i = 0; i < RLIM_NLIMITS; i++)
+    getrlimit(i, &owner_limits[i]);
 
   /* add the parent env variables */
   watchdog_utils_complete_env(&xml);

@@ -36,7 +36,6 @@
 
   #define NANO_VALUE  1000000000.0
   #define MICRO_VALUE 1000000.0
-  #define RLIMIT_INVALID -1
 
 #define EMPTY_CONFIG_FILE "\
 <?xml version=\"1.0\" encoding=\"utf-8\"?>\n\
@@ -89,14 +88,6 @@
       root->next = node;			\
     }						\
   } while(0)
-
-
-
-  struct owner_limit_s {
-      int id;
-      struct rlimit rl;
-  };
-
 
   /****************
    * XML
