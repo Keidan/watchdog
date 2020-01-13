@@ -38,8 +38,8 @@ If no configuration file is passed as parameter.<br/>
 The application search a configuration file localized into the folder [CONFIG_DIR] and named: ```<the_application_name>.xml```<br/>
 It's possible to create symbolic links with several configuration files:<br/>
 ```ln -s watchdog watchdog-foo```<br/>
-```watchdog-foo -n```<br/>
-now you can edit the config file [CONFIG_DIR]/watchdog-foo<br/>
+```watchdog-foo --new```<br/>
+now you can edit the config file [CONFIG_DIR]/watchdog-foo.xml<br/>
  	
 
 ## License

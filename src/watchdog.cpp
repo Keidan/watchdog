@@ -7,6 +7,8 @@
 #include <signal.h>
 #include <getopt.h>
 #include <fstream>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 static std::string pidfile = "";
 static pid_t pid = -1;
@@ -137,6 +139,7 @@ auto main(int argc, char** argv) -> int
       path = CONFIG_FILE_FOLDER;
     if(path[path.length() - 1] != '/')
       path.append("/");
+
     filename.append(path);
     filename.append(bname);
     filename.append(".xml");
@@ -144,30 +147,46 @@ auto main(int argc, char** argv) -> int
     if(z) 
     {
       FILE* f = nullptr;
+      struct stat info;
+      auto sdir = filename;
+      auto dir = dirname((char*)sdir.c_str());
+      if(stat(dir, &info) != 0)
+      {
+	std::cerr << "Cannot acces to " << dir << std::endl;
+	return EXIT_FAILURE;
+      }
+      else if(!(info.st_mode & S_IFDIR))
+      {
+	if(mkdir(dir, 0777) == -1)
+	{
+	  std::cerr << "Unable to create directory '" << dir << "': (" << errno << ") " << strerror(errno) << std::endl;
+	  return EXIT_FAILURE;
+	}
+      }
       do 
       {
-        /* Specific case in C */
-        f = fopen(filename.c_str(), "wx");
-        if (!f && errno == EEXIST) 
-        {
-          std::cerr << "Are you sure you want to overwrite the existing file? (y/N):" << std::endl;
-          char c;
-          auto r = fscanf(stdin, "%c", &c);
-          (void)r; /* warning in release */
-          if(c == 'y' || c == 'Y') 
-          {
-            unlink(filename.c_str());
-          } 
-          else 
-            return EXIT_FAILURE;
-        } 
-        else if(!f) 
-        {
-          std::cerr << "Unable to create the file '" << filename << "': (" << errno << ") " << strerror(errno) << std::endl;
-          return EXIT_FAILURE;
-        } 
-        else 
-          break;
+	/* Specific case in C */
+	f = fopen(filename.c_str(), "wx");
+	if (!f && errno == EEXIST) 
+	{
+	  std::cerr << "Are you sure you want to overwrite the existing file '" << filename << "'? (y/N):" << std::endl;
+	  char c;
+	  auto r = fscanf(stdin, "%c", &c);
+	  (void)r; /* warning in release */
+	  if(c == 'y' || c == 'Y') 
+	  {
+	    unlink(filename.c_str());
+	  } 
+	  else 
+	    return EXIT_FAILURE;
+	} 
+	else if(!f) 
+	{
+	  std::cerr << "Unable to create the file '" << filename << "': (" << errno << ") " << strerror(errno) << std::endl;
+	  return EXIT_FAILURE;
+	} 
+	else 
+	  break;
       }
       while(1);
       
@@ -240,8 +259,8 @@ static auto usage(std::string &name, int err) -> void
   std::cout << "\tThe application search a configuration file localized into the folder " << CONFIG_FILE_FOLDER << " and named: <the_application_name>.xml" << std::endl;
   std::cout << "\tIt's possible to create symbolic links with several configuration files:" << std::endl;
   std::cout << "\tln -s watchdog watchdog-foo" << std::endl;
-  std::cout << "\twatchdog-foo -n" << std::endl;
-  std::cout << "\tnow you can edit the config file " << CONFIG_FILE_FOLDER << "/watchdog-foo" << std::endl;
+  std::cout << "\twatchdog-foo --new" << std::endl;
+  std::cout << "\tnow you can edit the config file " << CONFIG_FILE_FOLDER << "/watchdog-foo.xml" << std::endl;
   exit(err);
 }
 
