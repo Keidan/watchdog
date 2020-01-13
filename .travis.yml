@@ -14,5 +14,4 @@ install:
   - "[ $CXX = g++ ] && export CXX=g++-7 || true"
   
 script:
-  - cmake -DDISTRIBUTION=release -DCMAKE_CXX_FLAGS=${CXX_FLAGS} -DCMAKE_BUILD_TYPE=x86 . 
-  - make
+  - ./build.sh
