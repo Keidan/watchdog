@@ -1,6 +1,7 @@
-cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.1.0 FATAL_ERROR)
 
-project(watchdog C)
+project(watchdog CXX)
+set (CMAKE_CXX_STANDARD 11)
 
 # add some macros, functions
 include(cmake/finder.cmake)
@@ -11,13 +12,14 @@ message("Supported distrib.: cmake -DDISTRIBUTION=[debug|release]")
 message("Supported arch.: cmake -DCMAKE_BUILD_TYPE=[x86|x86_64]")
 
 if("${DISTRIBUTION}" MATCHES "release")
-  set(CMAKE_C_FLAGS "-Wall -Werror -O2")
+  set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -Werror -O2 -fPIC")
   set(DISTRIBUTION "release")
 else()
   set(DISTRIBUTION "debug")
-  set(CMAKE_C_FLAGS "-Wall -O0 -g -fPIC")
+  set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -O0 -g -fPIC")
   add_definitions(-DDEBUG)
 endif()
+
 if(CONFIG_DIR STREQUAL "")
   set(CONFIG_DIR "/etc")
 endif()
@@ -66,8 +68,8 @@ file(MAKE_DIRECTORY ${WATCHDOG_BINARY_DIR})
 set(EXECUTABLE_OUTPUT_PATH ${WATCHDOG_BINARY_DIR})
 
 # list of sources.
-file(GLOB_RECURSE bin_src "${WATCHDOG_SRC_DIR}/*.c")
-file(GLOB_RECURSE bin_inc "${WATCHDOG_SRC_DIR}/*.h")
+file(GLOB_RECURSE bin_src "${WATCHDOG_SRC_DIR}/*.cpp")
+file(GLOB_RECURSE bin_inc "${WATCHDOG_SRC_DIR}/*.hpp")
 
 # Executable configuration
 add_executable(watchdog ${bin_src} ${bin_inc})

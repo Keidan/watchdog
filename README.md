@@ -1,12 +1,12 @@
-watchdog
-========
+# watchdog
+[![Build Status](https://img.shields.io/travis/Keidan/hex2bin/master.svg?style=plastic)](https://travis-ci.org/Keidan/watchdog)
+[![GitHub license](https://img.shields.io/github/license/Keidan/hex2bin.svg?style=plastic)](https://github.com/Keidan/watchdog/blob/master/LICENSE)
 
 (GPL) Simple process watchdog.
 
 This software is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.
 
-Instructions
-============
+## Instructions
 
 
 download the software :
@@ -19,8 +19,8 @@ download the software :
 	cmake -DDISTRIBUTION=[debug|release] -DCONFIG_DIR=[/etc] .
 	make
 
-Usage
-=====
+## Usage
+
 _watchdog options_:
 - --help, -h: Print this help.
 
@@ -42,21 +42,6 @@ It's possible to create symbolic links with several configuration files:<br/>
 now you can edit the config file [CONFIG_DIR]/watchdog-foo<br/>
  	
 
-License (like GPL)
-==================
+## License
 
-	You can:
-		- Redistribute the sources code and binaries.
-		- Modify the Sources code.
-		- Use a part of the sources (less than 50%) in an other software, just write somewhere "watchdog is great" visible by the user (on your product or on your website with a link to my page).
-		- Redistribute the modification only if you want.
-		- Send me the bug-fix (it could be great).
-		- Pay me a beer or some other things.
-		- Print the source code on WC paper ...
-	You can NOT:
-		- Earn money with this Software (But I can).
-		- Add malware in the Sources.
-		- Do something bad with the sources.
-		- Use it to travel in the space with a toaster.
-	
-	I reserve the right to change this licence. If it change the version of the copy you have keep its own license
+[GPLv3](https://github.com/Keidan/watchdog/blob/master/LICENSE)
