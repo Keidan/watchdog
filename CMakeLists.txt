@@ -7,7 +7,7 @@ set (CMAKE_CXX_STANDARD 11)
 include(cmake/finder.cmake)
 
 finder_include(libxml/xmlmemory.h "Please install the devel package of the XML2 library")
-message("Supported conf dir.: cmake -DCONFIG_DIR=[/etc]")
+message("Supported conf dir.: cmake -DCONFIG_DIR=[/etc/watchdog]")
 message("Supported distrib.: cmake -DDISTRIBUTION=[debug|release]")
 message("Supported arch.: cmake -DCMAKE_BUILD_TYPE=[x86|x86_64]")
 
@@ -21,7 +21,7 @@ else()
 endif()
 
 if(CONFIG_DIR STREQUAL "")
-  set(CONFIG_DIR "/etc")
+  set(CONFIG_DIR "/etc/watchdog")
 endif()
 
 # update directories

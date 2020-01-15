@@ -7,6 +7,9 @@
 #include <libxml/xmlmemory.h>
 #include <libxml/parser.h>
 
+
+extern char* process_name;
+
 constexpr const xmlChar* __XMLCAST(const char* str) 
 { 
   return reinterpret_cast<const xmlChar*>(str); 
@@ -38,20 +41,20 @@ auto WXML::load(std::string &filename) -> bool
 {
   if(m_process == nullptr)
   {
-    std::cerr << "Unloaded object" << std::endl;
+    std::cerr << process_name << "-> Unloaded object" << std::endl;
     return false;
   }
 
   if(access(filename.c_str(), F_OK) != 0) 
   {
-    std::cerr << "The XML file " << filename << " was not found" << std::endl;
+    std::cerr << process_name << "-> The XML file " << filename << " was not found" << std::endl;
     return false;
   } 
     
   auto doc = xmlReadFile(filename.c_str(), nullptr, 0);
   if (doc == nullptr) 
   {
-    std::cerr << "Failed to parse " << filename << std::endl;
+    std::cerr << process_name << "-> Failed to parse " << filename << std::endl;
     return false;
   }
   
@@ -59,7 +62,7 @@ auto WXML::load(std::string &filename) -> bool
   auto curL0 = xmlDocGetRootElement(doc);
   if (curL0 == nullptr) 
   {
-    std::cerr << "Empty document!" << std::endl;
+    std::cerr << process_name << "-> Empty document!" << std::endl;
     __cleanup(doc, true);
     return false;
   }
@@ -67,7 +70,7 @@ auto WXML::load(std::string &filename) -> bool
   /* Validation step */
   if (xmlStrcmp(curL0->name, __XMLCAST("process"))) 
   {
-    std::cerr << "Document of the wrong type, root node != process" << std::endl;
+    std::cerr << process_name << "-> Document of the wrong type, root node != process" << std::endl;
     __cleanup(doc, true);
     return false;
   }
@@ -87,7 +90,7 @@ auto WXML::load(std::string &filename) -> bool
   }
   if(m_process->name.empty()) 
   {
-    std::cerr << "Invalid process name" << std::endl;
+    std::cerr << process_name << "-> Invalid process name" << std::endl;
     __cleanup(doc, true);
     return false;
   }
@@ -106,6 +109,16 @@ auto WXML::load(std::string &filename) -> bool
         if(m_process->path[m_process->path.length() - 1] != '/')
           m_process->path.append("/");
         m_process->path.append(m_process->name);
+      }
+      xmlFree(value);
+    } 
+    else if (!xmlStrcmp(curL1->name, __XMLCAST("working")))
+    {
+      auto value = xmlNodeGetContent(curL1);
+      auto v = std::string((char*)value);
+      if(v.length()) 
+      {
+        m_process->working = v;
       }
       xmlFree(value);
     } 
@@ -163,7 +176,7 @@ auto WXML::load(std::string &filename) -> bool
           {
             if(value) xmlFree(value);
             if(value2) xmlFree(value2);
-            std::cerr << "Unable to decode the environment variable" << std::endl;
+            std::cerr << process_name << "-> Unable to decode the environment variable" << std::endl;
             __cleanup(doc, true);
             return false;
           }

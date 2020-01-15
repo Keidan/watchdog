@@ -13,7 +13,10 @@ constexpr std::uint32_t MAX_RESPAWN_BEFORE_DELAY = 5;
 constexpr std::uint32_t MINIMUM_COUNT_VALUE = 1;
 
 
-WRun::WRun(rlimit_t &ownerLimits) : m_child(-1), m_ownerLimits(ownerLimits)
+extern char* process_name;
+
+
+WRun::WRun(rlimit_t &ownerLimits, std::string &working) : m_child(-1), m_ownerLimits(ownerLimits), m_working(working)
 {
 }
 
@@ -45,9 +48,15 @@ auto WRun::spawn(std::string &name, std::vector<std::string> &args, std::vector<
       auto i = 0U;
       for(rlimit_t::iterator it = m_ownerLimits.begin(); it != m_ownerLimits.end(); ++it, i++)
         setrlimit(i, it);
+      if(!m_working.empty())
+      {
+        /* Adjusts the current directory to the directory specified by the configuration. */
+        if(chdir(m_working.c_str()) == -1)
+          std::cerr << process_name << "-> Unable to change the current directory:'" << m_working << "': (" << errno << ") " << strerror(errno) << "." << std::endl;
+      }
       if(execve(name.c_str(), WUtils::toStrlist(args).data(), WUtils::toStrlist(envs).data()) == -1) 
       {
-        std::cerr << "Unable to starts the process name:'" << args[0] << "', path: '" << name << "': (" << errno << ") " << strerror(errno) << "." << std::endl;
+        std::cerr << process_name << "-> Unable to starts the process name:'" << args[0] << "', path: '" << name << "': (" << errno << ") " << strerror(errno) << "." << std::endl;
       }
       _exit(0);
     }
@@ -55,7 +64,7 @@ auto WRun::spawn(std::string &name, std::vector<std::string> &args, std::vector<
     {
       auto w = waitpid(m_child, &status, WUNTRACED | WCONTINUED);
       if (w == -1) {
-        std::cerr << "Unable to wait for the process '" << args[0] << "[" << m_child << "]' : (" << errno << ") " << strerror(errno) << "." << std::endl;
+        std::cerr << process_name << "-> Unable to wait for the process '" << args[0] << "[" << m_child << "]' : (" << errno << ") " << strerror(errno) << "." << std::endl;
         exit(EXIT_FAILURE);
       }
       m_child = 0;
@@ -97,7 +106,7 @@ auto WRun::respawn(std::string &name, std::vector<std::string> &args, std::vecto
       {
         if(count == MAX_RESPAWN_BEFORE_DELAY) 
         {
-          std::cerr << "Too many restarts for the process '" << args[0] << "'." << std::endl;
+          std::cerr << process_name << "-> Too many restarts for the process '" << args[0] << "'." << std::endl;
           exit(EXIT_FAILURE);
         }
         count++;

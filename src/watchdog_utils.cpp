@@ -8,6 +8,35 @@
 extern char **environ;
 
 /**
+ * @brief Create the directory as well as the parents if they do not exist.
+ * @param s The path to create.
+ * @param mode The directory mode.
+ * @return false on error else true.
+ */
+auto WUtils::mkdirs(std::string &s, mode_t mode) -> bool
+{
+  size_t index = 0;
+  std::string dir;
+  std::string work = s;
+
+  if(work[work.size()-1]!='/')
+  {
+    /* force trailing '/' */
+    work += '/';
+  }
+
+  while((index = work.find_first_of('/', index)) != std::string::npos)
+  {
+    dir = work.substr(0, index++);
+    if(dir.empty()) 
+      continue;
+    else if(mkdir(dir.c_str(), mode) && errno != EEXIST)
+      return false;
+  }
+  return true;
+}
+
+/**
  * @brief Converts a vector of string to char**
  * @param input The vector of string.
  * @return std::vector<char*>

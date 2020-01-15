@@ -26,6 +26,7 @@ _watchdog options_:
 
 Mode standalone:
 - --path, -p: The process path (optional if the binary is in the PATH).
+- --working, -w: The working directory (optional).
 - --name, -n: The process name.
 - --arg, -a: The process argument (repeat for more).
 - --env, -e: The process environment variable (repeat for more).

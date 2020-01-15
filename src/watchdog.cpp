@@ -7,14 +7,13 @@
 #include <signal.h>
 #include <getopt.h>
 #include <fstream>
-#include <sys/types.h>
-#include <sys/stat.h>
 
 static std::string pidfile = "";
 static pid_t pid = -1;
 static std::string filename = "";
 static struct watchdog_xml_s xml;
 static WXML wxml(&xml);
+char* process_name = nullptr;
 
 
 static const struct option long_options[] = { 
@@ -23,6 +22,7 @@ static const struct option long_options[] = {
   { "directory"              , 1, NULL, 'd' },
   { "new"                    , 0, NULL, 'z' },
   { "path"                   , 1, NULL, 'p' },
+  { "working"                , 1, NULL, 'w' },
   { "name"                   , 1, NULL, 'n' },
   { "arg"                    , 1, NULL, 'a' },
   { "env"                    , 1, NULL, 'e' },
@@ -45,6 +45,8 @@ auto main(int argc, char** argv) -> int
   std::string cmd_path = "";
   bool disableSpamDetect = false;
   bool loadFromXML = false;
+  
+  process_name = basename(argv[0]);
 
   xml.name = "";
   xml.path = "";
@@ -60,7 +62,7 @@ auto main(int argc, char** argv) -> int
   
   /* parse the arguments */
   int opt;
-  while ((opt = getopt_long(argc, argv, "hc:zd:n:a:e:p:01:2", long_options, NULL)) != -1) 
+  while ((opt = getopt_long(argc, argv, "hc:zd:n:a:e:p:w:01:2", long_options, NULL)) != -1) 
   {
     switch (opt) 
     {
@@ -89,6 +91,9 @@ auto main(int argc, char** argv) -> int
       case 'p': /* path */
         xml.path = std::string(optarg);
         break;
+      case 'w': /* working */
+        xml.working = std::string(optarg);
+        break;
       case 'n': /* name */
         xml.name = std::string(optarg);
         xml.args.push_back(xml.name);
@@ -100,7 +105,7 @@ auto main(int argc, char** argv) -> int
         xml.envs.push_back(optarg);
         break;
       default: /* '?' */
-        std::cerr << "Unknown option '" << opt << "'" << std::endl;
+        std::cerr << process_name << "-> Unknown option '" << opt << "'" << std::endl;
         usage(bname, EXIT_FAILURE);
         break;
     }
@@ -115,7 +120,7 @@ auto main(int argc, char** argv) -> int
     fs.open(pidfile, std::fstream::in);
     if(fs.is_open())
     {
-      std::cerr << "The pid file '" << pidfile << "' already exists!" << std::endl;
+      std::cerr << process_name << "-> The pid file '" << pidfile << "' already exists!" << std::endl;
       fs.close();
       usage(bname, EXIT_FAILURE);
     }
@@ -127,7 +132,7 @@ auto main(int argc, char** argv) -> int
     }
     else
     {
-      std::cerr << "Unable to create the pid file '" << pidfile << "': (" << errno << ") " << strerror(errno) << std::endl;
+      std::cerr << process_name << "-> Unable to create the pid file '" << pidfile << "': (" << errno << ") " << strerror(errno) << std::endl;
       exit(EXIT_FAILURE);
     }
   }
@@ -147,46 +152,37 @@ auto main(int argc, char** argv) -> int
     if(z) 
     {
       FILE* f = nullptr;
-      struct stat info;
       auto sdir = filename;
-      auto dir = dirname((char*)sdir.c_str());
-      if(stat(dir, &info) != 0)
+      auto dir = std::string(dirname((char*)sdir.c_str()));
+      if(!WUtils::mkdirs(dir))
       {
-	std::cerr << "Cannot acces to " << dir << std::endl;
-	return EXIT_FAILURE;
-      }
-      else if(!(info.st_mode & S_IFDIR))
-      {
-	if(mkdir(dir, 0777) == -1)
-	{
-	  std::cerr << "Unable to create directory '" << dir << "': (" << errno << ") " << strerror(errno) << std::endl;
-	  return EXIT_FAILURE;
-	}
+        std::cerr << process_name << "-> Unable to create directory '" << dir << "': (" << errno << ") " << strerror(errno) << std::endl;
+        return EXIT_FAILURE;
       }
       do 
       {
-	/* Specific case in C */
-	f = fopen(filename.c_str(), "wx");
-	if (!f && errno == EEXIST) 
-	{
-	  std::cerr << "Are you sure you want to overwrite the existing file '" << filename << "'? (y/N):" << std::endl;
-	  char c;
-	  auto r = fscanf(stdin, "%c", &c);
-	  (void)r; /* warning in release */
-	  if(c == 'y' || c == 'Y') 
-	  {
-	    unlink(filename.c_str());
-	  } 
-	  else 
-	    return EXIT_FAILURE;
-	} 
-	else if(!f) 
-	{
-	  std::cerr << "Unable to create the file '" << filename << "': (" << errno << ") " << strerror(errno) << std::endl;
-	  return EXIT_FAILURE;
-	} 
-	else 
-	  break;
+        /* Specific case in C */
+        f = fopen(filename.c_str(), "wx");
+        if (!f && errno == EEXIST) 
+        {
+          std::cout << "Are you sure you want to overwrite the existing file '" << filename << "'? (y/N):" << std::endl;
+          char c;
+          auto r = fscanf(stdin, "%c", &c);
+          (void)r; /* warning in release */
+          if(c == 'y' || c == 'Y') 
+          {
+            unlink(filename.c_str());
+          } 
+          else 
+            return EXIT_FAILURE;
+        }
+        else if(!f) 
+        {
+          std::cerr << process_name << "-> Unable to create the file '" << filename << "': (" << errno << ") " << strerror(errno) << std::endl;
+          return EXIT_FAILURE;
+        } 
+        else 
+          break;
       }
       while(1);
       
@@ -211,7 +207,7 @@ auto main(int argc, char** argv) -> int
   {
     if(!WUtils::findFile(xml.name, xml.path)) 
     {
-      std::cerr << "The BIN file '" << xml.path << "' was not found." << std::endl;
+      std::cerr << process_name << "-> The BIN file '" << xml.name << "' was not found." << std::endl;
       return EXIT_FAILURE;
     }
   }
@@ -233,7 +229,7 @@ auto main(int argc, char** argv) -> int
     cmd_path.append(xml.args[0]);
   }
 
-  WRun run(ownerLimits);
+  WRun run(ownerLimits, xml.working);
   auto r = run.respawn(cmd_path, xml.args, xml.envs, disableSpamDetect);
   
   return r ? EXIT_SUCCESS : EXIT_FAILURE;
@@ -248,6 +244,7 @@ static auto usage(std::string &name, int err) -> void
   std::cout << "\t--pidfile: The file containing the pid (default: " << PID_FOLDER << "/" << name << ".pid) (this option enable the support of the pid)" << std::endl;
   std::cout << "Mode standalone:" << std::endl;
   std::cout << "\t--path, -p: The process path (optional if the binary is in the PATH)." << std::endl;
+  std::cout << "\t--working, -w: The working directory (optional)." << std::endl;
   std::cout << "\t--name, -n: The process name." << std::endl;
   std::cout << "\t--arg, -a: The process argument (repeat for more)." << std::endl;
   std::cout << "\t--env, -e: The process environment variable (repeat for more)." << std::endl;

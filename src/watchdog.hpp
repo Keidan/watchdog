@@ -19,8 +19,9 @@
   #include <sys/resource.h>
   #include <vector>
   #include <array>
-
-
+  #include <sys/types.h>
+  #include <sys/stat.h>
+  
   #define NANO_VALUE  1000000000.0
   #define MICRO_VALUE 1000000.0
 
@@ -30,6 +31,8 @@
 <process name=\"foo\">\n\
   <!-- Optional, if the file is not in the PATH -->\n\
   <path></path>\n\
+  <!-- Optional, application working directory -->\n\
+  <working></working>\n\
   <args>\n\
     <!-- Optional, arguments list -->\n\
     <arg></arg>\n\
@@ -41,7 +44,7 @@
 </process>\n"
 
   #ifndef CONFIG_FILE_FOLDER
-    #define CONFIG_FILE_FOLDER "/etc"
+    #define CONFIG_FILE_FOLDER "/etc/watchdog"
   #endif
 
   #ifndef PID_FOLDER
@@ -55,6 +58,7 @@
   struct watchdog_xml_s {
     std::string name;
     std::string path;
+    std::string working;
     std::vector<std::string> args;
     std::vector<std::string> envs;
   };
@@ -90,7 +94,17 @@
        virtual ~WUtils() = default;
        
      public:
+        constexpr static mode_t DEFAULT_DIR_MODE = S_IRWXU | S_IRGRP |  S_IXGRP | S_IROTH | S_IXOTH;
+
      
+       /**
+        * @brief Create the directory as well as the parents if they do not exist.
+        * @param s The path to create.
+        * @param mode The directory mode.
+        * @return false on error else true.
+        */
+      static auto mkdirs(std::string &s, mode_t mode = DEFAULT_DIR_MODE) -> bool;
+      
       /**
        * @brief Converts a vector of string to char**
        * @param input The vector of string.
@@ -136,7 +150,7 @@
   using rlimit_t = std::array<struct rlimit, RLIM_NLIMITS>;
   class WRun {
     public:
-      WRun(rlimit_t &ownerLimits);
+      WRun(rlimit_t &ownerLimits, std::string &working);
       virtual ~WRun();
       
       /**
@@ -161,6 +175,7 @@
     private:
       pid_t m_child;
       rlimit_t &m_ownerLimits;
+      std::string &m_working;
   };
 
 #endif /* __WATCHDOG_HPP__ */
