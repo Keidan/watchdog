@@ -1,6 +1,5 @@
 # watchdog
-[![Build Status](https://img.shields.io/travis/Keidan/hex2bin/master.svg?style=plastic)](https://travis-ci.org/Keidan/watchdog)
-[![GitHub license](https://img.shields.io/github/license/Keidan/hex2bin.svg?style=plastic)](https://github.com/Keidan/watchdog/blob/master/LICENSE)
+[![Build Status](https://travis-ci.com/Keidan/hex2bin.svg?branch=master)](https://travis-ci.com/Keidan/watchdog)
 
 (GPL) Simple process watchdog.
 
