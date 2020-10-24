@@ -9,9 +9,14 @@ before_install:
   - sudo apt-get update -qq
 
 install: 
-  - sudo apt-get install -qq g++-7 cmake
+  - sudo apt-get install -qq g++-7 cmake libxml2-dev libjsoncpp-dev
   - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-7 90
   - "[ $CXX = g++ ] && export CXX=g++-7 || true"
   
 script:
-  - ./build.sh
+  - cmake -DDISTRIBUTION=debug -DCMAKE_BUILD_TYPE=$(uname -m) -DCONFIG_DIR=$(pwd) .
+  - make
+  - bash ./test debug
+  - cmake -DDISTRIBUTION=release --DCMAKE_BUILD_TYPE=$(uname -m) DCONFIG_DIR=$(pwd) .
+  - make
+  - bash ./test release

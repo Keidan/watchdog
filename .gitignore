@@ -6,3 +6,6 @@ CMakeCache*
 cmake_*
 #*
 .#*
+*.o
+obj
+lib

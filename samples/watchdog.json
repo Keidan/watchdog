@@ -1,0 +1,21 @@
+{
+  "process": { 
+    // The process name eg with /bin/ls name="ls"
+    "name": "ls",
+    // Optional, if the file is not in the PATH
+    "path": "/bin",
+    // Optional, application working directory
+    "working": "",
+    // Optional, arguments list eg: "-a", "-l", etc
+    "args": [
+      "-a",
+      "-l",
+      "-s",
+      "/home"
+    ],
+    // Optional, environment variables list
+    "envs": [
+      {"name": "", "value": ""}
+    ]
+  }
+}

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The process name eg with /bin/ls name="ls" -->
+<process name="ls">
+  <!-- Optional, if the file is not in the PATH -->
+  <path>/bin</path>
+  <!-- Optional, application working directory -->
+  <working></working>
+  <args>
+    <!-- Optional, arguments list -->
+    <arg>-a</arg>
+    <arg>-l</arg>
+    <arg>-s</arg>
+    <arg>/home</arg>
+  </args>
+  <envs>
+    <!-- Optional, environment variables list -->
+    <env name="" value=""/>
+  </envs>
+</process>

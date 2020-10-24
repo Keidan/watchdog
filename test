@@ -1,0 +1,41 @@
+#!/bin/bash
+
+mode=${1}
+
+
+tn=1
+
+test_pass() {
+    echo -e "Test $tn \e[32mOK\e[0m"
+    tn=$(($tn+1))
+}
+
+test_fail() {
+    echo -e "Test $tn \e[31mFAILED\e[0m"
+    exit 1
+}
+
+if [ "${mode}" != "release" ] && [ "${mode}" != "debug" ]; then
+	echo "Mode must be \"release\" OR \"debug\""
+	test_fail
+fi
+
+echo "Mode: \"${mode}\""
+
+APP=bin/${mode}/watchdog
+
+./${APP} --max-respawn 0 --directory samples -t xml >/dev/null 2>&1
+ret=${?}
+if [ ${ret} -eq 0 ]; then
+  test_pass
+  ./${APP} --max-respawn 0 --directory samples -t json >/dev/null 2>&1
+  ret=${?}
+  if [ ${ret} -eq 0 ]; then
+    test_pass
+  else
+    test_fail
+  fi
+else
+  test_fail
+fi
+echo -e "TEST \e[32mPASSED\e[0m"

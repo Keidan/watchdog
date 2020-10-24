@@ -1,18 +1,16 @@
-cmake_minimum_required(VERSION 3.1.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 
 project(watchdog CXX)
 set (CMAKE_CXX_STANDARD 11)
 
-# add some macros, functions
-include(cmake/finder.cmake)
-
-finder_include(libxml/xmlmemory.h "Please install the devel package of the XML2 library")
 message("Supported conf dir.: cmake -DCONFIG_DIR=[/etc/watchdog]")
 message("Supported distrib.: cmake -DDISTRIBUTION=[debug|release]")
 message("Supported arch.: cmake -DCMAKE_BUILD_TYPE=[x86|x86_64|armv7l]")
+message("Disable XML: cmake -DDISABLE_XML=yes")
+message("Disable JSON: cmake -DDISABLE_JSON=yes")
 
 if("${DISTRIBUTION}" MATCHES "release")
-  set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -Werror -O2 -fPIC")
+  set(CMAKE_CXX_FLAGS "-std=c++11 -fstack-protector-all -D_FORTIFY_SOURCE=2 -ffunction-sections -Wall -Werror")
   set(DISTRIBUTION "release")
 else()
   set(DISTRIBUTION "debug")
@@ -25,9 +23,13 @@ if(CONFIG_DIR STREQUAL "")
 endif()
 
 # update directories
+set(ADDITIONAL_LIBS "")
 set(WATCHDOG_BINARY_DIR ${CMAKE_SOURCE_DIR}/bin)
 set(WATCHDOG_SRC_DIR ${CMAKE_SOURCE_DIR}/src)
-include_directories("/usr/include/libxml2")
+
+# configure
+include(${CMAKE_SOURCE_DIR}/cmake/config.cmake)
+configure_file(${CMAKE_SOURCE_DIR}/cmake/config-cmake.hpp.in ${WATCHDOG_SRC_DIR}/config.hpp)
 
 
 set(ARCH "${CMAKE_BUILD_TYPE}")
@@ -53,9 +55,22 @@ else()
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m32")
   set(ARCH "x86")
 endif()
+
+# Information
 message("-- Dristrib: ${DISTRIBUTION}")
 message("-- Arch: ${ARCH}")
 message("-- Config dir: ${CONFIG_DIR}")
+if(HAVE_XML_H)
+message("-- XML support: YES")
+else()
+message("-- XML support: NO")
+endif()
+if(HAVE_JSON_H)
+message("-- JSON support: YES")
+else()
+message("-- JSON support: NO")
+endif()
+
 
 add_definitions(-DCONFIG_FILE_FOLDER="${CONFIG_DIR}")
 
@@ -72,13 +87,31 @@ set(WATCHDOG_BINARY_DIR ${CMAKE_SOURCE_DIR}/bin/${DISTRIBUTION})
 file(MAKE_DIRECTORY ${WATCHDOG_BINARY_DIR})
 set(EXECUTABLE_OUTPUT_PATH ${WATCHDOG_BINARY_DIR})
 
+
 # list of sources.
-file(GLOB_RECURSE bin_src "${WATCHDOG_SRC_DIR}/*.cpp")
-file(GLOB_RECURSE bin_inc "${WATCHDOG_SRC_DIR}/*.hpp")
+set(SOURCES
+	${WATCHDOG_SRC_DIR}/WRun.cpp
+	${WATCHDOG_SRC_DIR}/WUtils.cpp
+	${WATCHDOG_SRC_DIR}/Log.cpp
+)
+set(INCLUDES
+	${WATCHDOG_SRC_DIR}/config.hpp
+	${WATCHDOG_SRC_DIR}/watchdog.hpp
+	${WATCHDOG_SRC_DIR}/Log.hpp
+)
+if(HAVE_XML_H)
+list(APPEND SOURCES ${WATCHDOG_SRC_DIR}/WXML.cpp)
+endif()
+if(HAVE_JSON_H)
+list(APPEND SOURCES ${WATCHDOG_SRC_DIR}/WJSON.cpp)
+endif()
+
+set(bin_src
+	${WATCHDOG_SRC_DIR}/watchdog.cpp
+	${SOURCES}
+)
 
 # Executable configuration
-add_executable(watchdog ${bin_src} ${bin_inc})
-target_link_libraries(watchdog xml2 rt)
-
-
+add_executable(watchdog ${bin_src} ${INCLUDES})
+target_link_libraries(watchdog rt ${ADDITIONAL_LIBS})
 
