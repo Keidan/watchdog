@@ -183,7 +183,8 @@ if("${DISTRIBUTION}" MATCHES "debug")
 
   add_custom_command(TARGET gcov POST_BUILD
     COMMAND lcov --directory ${OBJECT_DIR} -c -o ${CMAKE_BINARY_DIR}/coverage/rapport.info
-    COMMAND genhtml -o . -t "Test cover" rapport.info
+    COMMAND lcov --remove ${CMAKE_BINARY_DIR}/coverage/rapport.info -o ${CMAKE_BINARY_DIR}/coverage/rapport_filtered.info '${CMAKE_SOURCE_DIR}/nlohmann-json/*' '*/11/*'
+    COMMAND genhtml -o . -t "Test cover" rapport_filtered.info
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/coverage
   )
   
