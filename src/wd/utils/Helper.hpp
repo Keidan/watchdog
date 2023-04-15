@@ -211,10 +211,13 @@ namespace wd::utils
         if (!path.empty())
         {
           /* Adjusts the current directory to the directory specified by the configuration. */
-          std::filesystem::current_path(path);
-          if (std::filesystem::current_path() == path)
+          if (std::filesystem::exists(path))
           {
-            ret = true;
+            std::filesystem::current_path(path);
+            if (std::filesystem::current_path() == path)
+            {
+              ret = true;
+            }
           }
         }
         else
