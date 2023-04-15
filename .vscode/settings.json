@@ -1,0 +1,4 @@
+{
+  "C_Cpp.clang_format_style": "{ BasedOnStyle: LLVM, UseTab: Never, IndentWidth: 2, Language: Cpp, BreakBeforeBraces: Allman, IndentCaseLabels: false, IndentAccessModifiers: true, NamespaceIndentation: All, ColumnLimit: 160, PointerAlignment: Left, AlignEscapedNewlines: Left, IndentPPDirectives: AfterHash }",
+  "sonarlint.pathToCompileCommands": "${workspaceFolder}/build/compile_commands.json",
+}

@@ -1,22 +1,42 @@
-cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.22 FATAL_ERROR)
 
 project(watchdog CXX)
-set (CMAKE_CXX_STANDARD 11)
+
+file(READ "version.txt" ver)
+string(REGEX MATCH "VERSION_MAJOR ([0-9]*)" _ ${ver})
+set(VERSION_MAJOR ${CMAKE_MATCH_1})
+string(REGEX MATCH "VERSION_MINOR ([0-9]*)" _ ${ver})
+set(VERSION_MINOR ${CMAKE_MATCH_1})
+
+set (CPP_VERISON 17)
+set (CMAKE_CXX_STANDARD ${CPP_VERISON})
+
+find_package(Python COMPONENTS Interpreter Development)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 message("Supported conf dir.: cmake -DCONFIG_DIR=[/etc/watchdog]")
 message("Supported distrib.: cmake -DDISTRIBUTION=[debug|release]")
-message("Supported arch.: cmake -DCMAKE_BUILD_TYPE=[x86|x86_64|armv7l]")
-message("Disable XML: cmake -DDISABLE_XML=yes")
-message("Disable JSON: cmake -DDISABLE_JSON=yes")
+message("Supported arch.: cmake -DARCHITECTURE=[x86|x86_64|armv7l]")
+message("Disable XML: cmake -DDISABLE_XML=[on|off]")
+message("Disable JSON: cmake -DDISABLE_JSON=[on|off]")
+
+set(CONFIG_DIR "/etc/watchdog" CACHE STRING "Supported conf dir.")
+set(DISTRIBUTION "debug" CACHE STRING "Supported distrib.")
+set(ARCHITECTURE "${CMAKE_SYSTEM_PROCESSOR}" CACHE STRING "Supported arch.")
+set(DISABLE_XML OFF CACHE BOOL "Disable XML support")
+set(DISABLE_JSON OFF CACHE BOOL "Disable JSON support")
 
 if("${DISTRIBUTION}" MATCHES "release")
-  set(CMAKE_CXX_FLAGS "-std=c++11 -fstack-protector-all -D_FORTIFY_SOURCE=2 -ffunction-sections -Wall -Werror")
+  set(CMAKE_CXX_FLAGS "-std=c++${CPP_VERISON} -fstack-protector-all -D_FORTIFY_SOURCE=2 -ffunction-sections -Wall -Werror")
   set(DISTRIBUTION "release")
 else()
   set(DISTRIBUTION "debug")
-  set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -O0 -g -fPIC")
+  set(CMAKE_CXX_FLAGS "-std=c++${CPP_VERISON} -Wall -O0 -g -fPIC -fprofile-arcs -ftest-coverage --coverage  -fprofile-abs-path")
+  set(CMAKE_CXX_OUTPUT_EXTENSION_REPLACE ON)
   add_definitions(-DDEBUG)
 endif()
+set(CMAKE_BUILD_TYPE ${DISTRIBUTION})
 
 if(CONFIG_DIR STREQUAL "")
   set(CONFIG_DIR "/etc/watchdog")
@@ -24,15 +44,21 @@ endif()
 
 # update directories
 set(ADDITIONAL_LIBS "")
-set(WATCHDOG_BINARY_DIR ${CMAKE_SOURCE_DIR}/bin)
-set(WATCHDOG_SRC_DIR ${CMAKE_SOURCE_DIR}/src)
+set(APP_BINARY_DIR ${CMAKE_SOURCE_DIR}/bin/${DISTRIBUTION})
+set(APP_SRC_DIR ${CMAKE_SOURCE_DIR}/src)
+set(APP_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/src)
+file(MAKE_DIRECTORY ${APP_BINARY_DIR})
+set(EXECUTABLE_OUTPUT_PATH ${APP_BINARY_DIR})
+include_directories(${APP_INCLUDE_DIR})
+set(OBJECT_DIR ${CMAKE_BINARY_DIR}/CMakeFiles/${CMAKE_PROJECT_NAME}.dir)
+message("-- Object files will be output to: ${OBJECT_DIR}")
 
 # configure
 include(${CMAKE_SOURCE_DIR}/cmake/config.cmake)
-configure_file(${CMAKE_SOURCE_DIR}/cmake/config-cmake.hpp.in ${WATCHDOG_SRC_DIR}/config.hpp)
+configure_file(${CMAKE_SOURCE_DIR}/cmake/config-cmake.hpp.in ${APP_SRC_DIR}/wd/BuildConfig.hpp)
 
 
-set(ARCH "${CMAKE_BUILD_TYPE}")
+set(ARCH "${ARCHITECTURE}")
 if(ARCH STREQUAL "")
   set(ARCH "${CMAKE_SYSTEM_PROCESSOR}")
   if(ARCH STREQUAL "i686" OR ARCH STREQUAL "i386")
@@ -57,8 +83,9 @@ else()
 endif()
 
 # Information
-message("-- Dristrib: ${DISTRIBUTION}")
-message("-- Arch: ${ARCH}")
+message("-- Version: ${VERSION_MAJOR}.${VERSION_MINOR}")
+message("-- Distrib.: ${DISTRIBUTION}")
+message("-- Arch.: ${ARCH}")
 message("-- Config dir: ${CONFIG_DIR}")
 if(HAVE_XML_H)
 message("-- XML support: YES")
@@ -71,47 +98,108 @@ else()
 message("-- JSON support: NO")
 endif()
 
-
 add_definitions(-DCONFIG_FILE_FOLDER="${CONFIG_DIR}")
-
-# removes generated files with 'make clean-all'
-add_custom_target(clean-cmake
-   COMMAND ${CMAKE_COMMAND} -P cmake/clean-cmake.cmake
-)
-add_custom_target(clean-all
-   COMMAND ${CMAKE_BUILD_TOOL} clean
-   COMMAND ${CMAKE_BUILD_TOOL} clean-cmake
-)
-
-set(WATCHDOG_BINARY_DIR ${CMAKE_SOURCE_DIR}/bin/${DISTRIBUTION})
-file(MAKE_DIRECTORY ${WATCHDOG_BINARY_DIR})
-set(EXECUTABLE_OUTPUT_PATH ${WATCHDOG_BINARY_DIR})
 
 
 # list of sources.
-set(SOURCES
-	${WATCHDOG_SRC_DIR}/WRun.cpp
-	${WATCHDOG_SRC_DIR}/WUtils.cpp
-	${WATCHDOG_SRC_DIR}/Log.cpp
+set(common_sources
+	${APP_SRC_DIR}/wd/run/Run.cpp
+	${APP_SRC_DIR}/wd/utils/Log.cpp
+	${APP_SRC_DIR}/wd/Watchdog.cpp
 )
-set(INCLUDES
-	${WATCHDOG_SRC_DIR}/config.hpp
-	${WATCHDOG_SRC_DIR}/watchdog.hpp
-	${WATCHDOG_SRC_DIR}/Log.hpp
+set(common_includes
+	${APP_SRC_DIR}/wd/BuildConfig.hpp
+	${APP_SRC_DIR}/wd/config/IConfigable.hpp
+	${APP_SRC_DIR}/wd/run/Run.hpp
+	${APP_SRC_DIR}/wd/run/Process.hpp
+	${APP_SRC_DIR}/wd/utils/Helper.hpp
+	${APP_SRC_DIR}/wd/utils/Log.hpp
 )
 if(HAVE_XML_H)
-list(APPEND SOURCES ${WATCHDOG_SRC_DIR}/WXML.cpp)
+  set(config_sources ${config_sources} ${APP_SRC_DIR}/wd/config/ConfigXML.cpp)
+  set(config_includes ${config_includes} ${APP_SRC_DIR}/wd/config/ConfigXML.hpp)
 endif()
 if(HAVE_JSON_H)
-list(APPEND SOURCES ${WATCHDOG_SRC_DIR}/WJSON.cpp)
+  set(config_sources ${config_sources} ${APP_SRC_DIR}/wd/config/ConfigJSON.cpp)
+  set(config_includes ${config_includes} ${APP_SRC_DIR}/wd/config/ConfigJSON.hpp)
 endif()
 
 set(bin_src
-	${WATCHDOG_SRC_DIR}/watchdog.cpp
-	${SOURCES}
+	${common_sources}
+  ${config_sources}
+	${APP_SRC_DIR}/main.cpp
+)
+set(bin_inc ${common_includes} ${config_includes})
+
+add_custom_target(
+  update_sonar_version ALL
+  COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/update_sonar_version.py --root ${CMAKE_CURRENT_SOURCE_DIR}
+  COMMENT "Target update_sonar_version"
 )
 
 # Executable configuration
-add_executable(watchdog ${bin_src} ${INCLUDES})
-target_link_libraries(watchdog rt ${ADDITIONAL_LIBS})
+add_executable(${CMAKE_PROJECT_NAME} ${bin_src} ${bin_inc})
+target_link_libraries(${CMAKE_PROJECT_NAME} rt ${ADDITIONAL_LIBS})
 
+
+if("${DISTRIBUTION}" MATCHES "debug")
+  # Create the gcov target. Run coverage tests with 'make gcov'
+  add_custom_target(gcov
+    COMMAND mkdir -p coverage
+    COMMAND ${CMAKE_MAKE_PROGRAM} test
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+  )
+
+  add_custom_command(TARGET gcov
+    COMMAND gcov -b ${CMAKE_SOURCE_DIR}/src/wd/run/Run.cpp -o ${OBJECT_DIR}/src/wd/run/
+    | grep -A 5 "Run.cpp" > CoverageSummary.tmp
+    COMMAND gcov -b ${CMAKE_SOURCE_DIR}/src/wd/utils/Log.cpp -o ${OBJECT_DIR}/src/wd/utils/
+    | grep -A 5 "Log.cpp" >> CoverageSummary.tmp
+    COMMAND gcov -b ${CMAKE_SOURCE_DIR}/src/wd/Watchdog.cpp -o ${OBJECT_DIR}/src/wd/
+    | grep -A 5 "Watchdog.cpp" >> CoverageSummary.tmp
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/coverage
+  )
+  if(HAVE_XML_H)
+    add_custom_command(TARGET gcov
+      COMMAND gcov -b ${CMAKE_SOURCE_DIR}/src/wd/config/ConfigXML.cpp -o ${OBJECT_DIR}/src/wd/config/
+      | grep -A 5 "ConfigXML.cpp" >> CoverageSummary.tmp
+      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/coverage
+  )
+  endif()
+  if(HAVE_JSON_H)
+    add_custom_command(TARGET gcov
+      COMMAND gcov -b ${CMAKE_SOURCE_DIR}/src/wd/config/ConfigJSON.cpp -o ${OBJECT_DIR}/src/wd/config/
+      | grep -A 5 "ConfigJSON.cpp" >> CoverageSummary.tmp
+      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/coverage
+    )
+  endif()
+
+  add_custom_command(TARGET gcov
+  COMMAND echo "=================== GCOV ===================="
+    COMMAND cat CoverageSummary.tmp
+    COMMAND echo "-- Coverage files have been output to ${CMAKE_BINARY_DIR}/coverage"
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/coverage
+  )
+
+  add_custom_command(TARGET gcov POST_BUILD
+    COMMAND lcov --directory ${OBJECT_DIR} -c -o ${CMAKE_BINARY_DIR}/coverage/rapport.info
+    COMMAND genhtml -o . -t "Test cover" rapport.info
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/coverage
+  )
+  
+  add_dependencies(gcov ${CMAKE_PROJECT_NAME})
+  # Make sure to clean up the coverage folder
+  set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES coverage)
+
+  # Create the gcov-clean target. This cleans the build as well as generated 
+  # .gcda and .gcno files.
+  add_custom_target(scrub
+    COMMAND ${CMAKE_MAKE_PROGRAM} clean
+    COMMAND rm -f ${OBJECT_DIR}/*.gcno
+    COMMAND rm -f ${OBJECT_DIR}/*.gcda
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+  )
+
+  include(${CMAKE_SOURCE_DIR}/cmake/tests.cmake)
+  
+endif()

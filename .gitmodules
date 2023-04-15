@@ -1,0 +1,4 @@
+[submodule "nlohmann-json"]
+	path = nlohmann-json
+	url = git@github.com:Keidan/nlohmann-json.git
+	hexsha = bc889afb4c5bf1c0d8ee29ef35eaaf4c8bef8a5d

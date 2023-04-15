@@ -1,0 +1,177 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "GDB (JSON)",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/bin/debug/watchdog",
+        "args": [
+          "--max-respawn", "0",
+          "--directory", "${workspaceFolder}/samples",
+          "-t", "json"
+        ],
+        "stopAtEntry": true,
+        "cwd": "${workspaceFolder}",
+        "environment": [],
+        "externalConsole": false,
+        "MIMode": "gdb",
+        "miDebuggerPath": "/usr/bin/gdb",
+        "setupCommands": [
+          {
+            "description": "Enable pretty-printing for gdb",
+            "text": "-enable-pretty-printing",
+            "ignoreFailures": true
+          },
+          {
+            "description": "Follow fork in child",
+            "text": "-gdb-set follow-fork-mode child",
+            "ignoreFailures": false
+          }
+        ]
+      },
+      {
+        "name": "GDB (XML)",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/bin/debug/watchdog",
+        "args": [
+          "--max-respawn", "0",
+          "--directory", "${workspaceFolder}/samples",
+          "-t", "xml"
+        ],
+        "stopAtEntry": true,
+        "cwd": "${workspaceFolder}",
+        "environment": [],
+        "externalConsole": false,
+        "MIMode": "gdb",
+        "miDebuggerPath": "/usr/bin/gdb",
+        "setupCommands": [
+          {
+            "description": "Enable pretty-printing for gdb",
+            "text": "-enable-pretty-printing",
+            "ignoreFailures": true
+          },
+          {
+            "description": "Follow fork in child",
+            "text": "-gdb-set follow-fork-mode child",
+            "ignoreFailures": false
+          }
+        ]
+      },
+      {
+        "name": "GDB (config xml)",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/bin/debug/watchdog",
+        "args": [
+          "--max-respawn", "0",
+          "--directory", "${workspaceFolder}/samples",
+          "--config", "watchdog.xml"
+        ],
+        "stopAtEntry": true,
+        "cwd": "${workspaceFolder}",
+        "environment": [],
+        "externalConsole": false,
+        "MIMode": "gdb",
+        "miDebuggerPath": "/usr/bin/gdb",
+        "setupCommands": [
+          {
+            "description": "Enable pretty-printing for gdb",
+            "text": "-enable-pretty-printing",
+            "ignoreFailures": true
+          },
+          {
+            "description": "Follow fork in child",
+            "text": "-gdb-set follow-fork-mode child",
+            "ignoreFailures": false
+          }
+        ]
+      },
+      {
+        "name": "GDB (standalone)",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/bin/debug/watchdog",
+        "args": [
+          "--max-respawn", "0",
+          "--path", "/bin",
+          "--name", "ls",
+          "--arg", "-a",
+          "--arg", "-l",
+          "--arg", "-s",
+          "--arg", "/home",
+          "--pidfile", "/tmp/wd.pid",
+          "--pid"
+        ],
+        "stopAtEntry": true,
+        "cwd": "${workspaceFolder}",
+        "environment": [],
+        "externalConsole": false,
+        "MIMode": "gdb",
+        "miDebuggerPath": "/usr/bin/gdb",
+        "setupCommands": [
+          {
+            "description": "Enable pretty-printing for gdb",
+            "text": "-enable-pretty-printing",
+            "ignoreFailures": true
+          },
+          {
+            "description": "Follow fork in child",
+            "text": "-gdb-set follow-fork-mode child",
+            "ignoreFailures": false
+          }
+        ]
+      },
+      {
+        "name": "GDB (none)",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/bin/debug/watchdog",
+        "args": [],
+        "stopAtEntry": true,
+        "cwd": "${workspaceFolder}",
+        "environment": [],
+        "externalConsole": false,
+        "MIMode": "gdb",
+        "miDebuggerPath": "/usr/bin/gdb",
+        "setupCommands": [
+          {
+            "description": "Enable pretty-printing for gdb",
+            "text": "-enable-pretty-printing",
+            "ignoreFailures": true
+          },
+          {
+            "description": "Follow fork in child",
+            "text": "-gdb-set follow-fork-mode child",
+            "ignoreFailures": false
+          }
+        ]
+      },
+      {
+        "name": "GDB (new config)",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${workspaceFolder}/bin/debug/watchdog",
+        "args": [ "-z", "--directory", "/tmp/cfg", "--config", "test.xml" ],
+        "stopAtEntry": true,
+        "cwd": "${workspaceFolder}",
+        "environment": [],
+        "externalConsole": false,
+        "MIMode": "gdb",
+        "miDebuggerPath": "/usr/bin/gdb",
+        "setupCommands": [
+          {
+            "description": "Enable pretty-printing for gdb",
+            "text": "-enable-pretty-printing",
+            "ignoreFailures": true
+          },
+          {
+            "description": "Follow fork in child",
+            "text": "-gdb-set follow-fork-mode child",
+            "ignoreFailures": false
+          }
+        ]
+      }
+    ]
+  }

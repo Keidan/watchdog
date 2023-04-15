@@ -1,12 +1,11 @@
 /**
- * @file config.hpp
+ * @file BuildConfig.hpp
  * @author Keidan
  * @copyright GNU GENERAL PUBLIC LICENSE Version 3
  */
-#ifndef __CONFIG_HPP__
-  #define __CONFIG_HPP__
+#pragma once
 
-  #cmakedefine HAVE_XML_H
-  #cmakedefine HAVE_JSON_H
-
-#endif /* __CONFIG_HPP__ */
+#define VERSION_MAJOR @VERSION_MAJOR@
+#define VERSION_MINOR @VERSION_MINOR@
+#cmakedefine HAVE_XML_H
+#cmakedefine HAVE_JSON_H

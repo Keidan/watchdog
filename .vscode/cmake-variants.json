@@ -1,0 +1,50 @@
+{
+
+  "buildType": {
+    "default": "debug",
+    "choices": {
+      "debug": {
+        "short": "Debug",
+        "long": "Build in debug",
+        "buildType": "debug",
+        "settings": {
+          "DISTRIBUTION": "debug"
+        }
+      },
+      "release": {
+        "short": "release",
+        "long": "Build in release",
+        "buildType": "release",
+        "settings": {
+          "DISTRIBUTION": "release"
+        }
+      }
+    }
+  },
+  "arch": {
+    "default": "x86_64",
+    "choices": {
+      "x86_64": {
+        "short": "x86_64",
+        "long": "X86 64-bit architecture",
+        "settings": {
+          "ARCHITECTURE": "x86_64"
+        }
+      },
+      "x86": {
+        "short": "x86",
+        "long": "X86 32-bit architecture",
+        "settings": {
+          "ARCHITECTURE": "x86"
+        }
+      },
+      "armv7l": {
+        "short": "armv7l",
+        "long": "ARM V7 architecture",
+        "settings": {
+          "ARCHITECTURE": "armv7l"
+        }
+      }
+    }
+  }
+}
