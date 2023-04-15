@@ -25,6 +25,9 @@
 extern "C"
 {
   int execve(const char* filename, const char** argvs, const char** envp);
+#ifdef DEBUG
+  extern void __gcov_dump();
+#endif /* DEBUG */
 }
 /* Usings -------------------------------------------------------------------*/
 using namespace wd::run;
@@ -69,6 +72,10 @@ auto Run::spawn(const std::string& name, const std::vector<std::string>& args, c
       if (!Helper::changeDir(m_working))
         std::clog << LogPriority::WARNING << "Unable to change the current directory:'" << m_working << "': (" << errno << ") " << strerror(errno) << "."
                   << std::endl;
+#ifdef DEBUG
+      /* Force dump here */
+      __gcov_dump();
+#endif /* DEBUG */
       if (-1 == execve(name.c_str(), &m_cArgs[0], &m_cEnvs[0]))
       {
         std::clog << LogPriority::EMERG << "Unable to starts the process name:'" << args[0] << "', path: '" << name << "': (" << errno << ") "
