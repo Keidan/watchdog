@@ -113,7 +113,7 @@ auto Watchdog::execute(const WatchdogConfig& wdConfig, const std::shared_ptr<run
  */
 auto Watchdog::kill() const -> void
 {
-  if (m_cfgPid->pid > 0)
+  if (nullptr != m_cfgPid && m_cfgPid->pid > 0)
   {
     std::ifstream file;
     file.open(m_pfile);
