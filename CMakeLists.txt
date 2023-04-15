@@ -195,8 +195,8 @@ if("${DISTRIBUTION}" MATCHES "debug")
   # .gcda and .gcno files.
   add_custom_target(scrub
     COMMAND ${CMAKE_MAKE_PROGRAM} clean
-    COMMAND rm -f ${OBJECT_DIR}/*.gcno
-    COMMAND rm -f ${OBJECT_DIR}/*.gcda
+    COMMAND find ${OBJECT_DIR} -type f -name "*.gcno" | xargs rm 2>/dev/null
+    COMMAND find ${OBJECT_DIR} -type f -name "*.gcda" | xargs rm 2>/dev/null
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
   )
 
