@@ -25,6 +25,7 @@ jobs:
       CMAKE_GENERATOR: "Ninja"
       BUILD_WRAPPER_OUT_DIR: build_wrapper_output_directory_linux
       COVERAGE_XML: coverage.xml
+      BUILD_DIR: build
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - name: Checkout the code
@@ -60,27 +61,30 @@ jobs:
         uses: SonarSource/sonarcloud-github-c-cpp@v1
       - name: Configure for debug
         shell: bash
-        run: cmake -S . -B build -DDISTRIBUTION=debug -G "${{ env.CMAKE_GENERATOR }}"
+        run: cmake -S . -B ${{ env.BUILD_DIR }} -DDISTRIBUTION=debug -G "${{ env.CMAKE_GENERATOR }}"
       - name: Build debug
         shell: bash
-        run: cmake --build build
+        run: cmake --build ${{ env.BUILD_DIR }}
       - name: Generate GCOV
         run: |
-          cmake --build build --target gcov
+          cmake --build ${{ env.BUILD_DIR }} --target gcov
       - name: Collect coverage into one XML report
         run: |
           gcovr --exclude-throw-branches --sonarqube > ${{ env.COVERAGE_XML }}
+      - name: Cleanup
+        run: |
+          cmake --build ${{ env.BUILD_DIR }} --target scrub
       - name: Configure for release
         shell: bash
-        run: cmake -S . -B build -DDISTRIBUTION=release -G "${{ env.CMAKE_GENERATOR }}"
+        run: cmake -S . -B ${{ env.BUILD_DIR }} -DDISTRIBUTION=release -G "${{ env.CMAKE_GENERATOR }}"
       - name: Build release
         shell: bash
-        run: cmake --build build
+        run: cmake --build ${{ env.BUILD_DIR }}
       - name: Run build-wrapper
         run: |
-          cmake --build build --target scrub
-          cmake -S . -B build -DDISTRIBUTION=release -G "${{ env.CMAKE_GENERATOR }}"
-          build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} cmake --build build
+          cmake --build ${{ env.BUILD_DIR }} --target clean
+          cmake -S . -B ${{ env.BUILD_DIR }} -DDISTRIBUTION=debug -G "${{ env.CMAKE_GENERATOR }}"
+          build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} cmake --build ${{ env.BUILD_DIR }}
       - name: Run sonar-scanner
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
