@@ -26,9 +26,11 @@ namespace wd::run
   {
     public:
       Run(wd::utils::rlimit_t& limits, std::string_view working);
-      virtual ~Run();
-      Run(Run const&) = delete;
-      Run& operator=(Run const&) = delete;
+      
+      /**
+       * @brief Kills the child process.
+       */
+      auto killChild() -> void;
 
       /**
        * @brief Starts a process and waits for output.

@@ -36,8 +36,6 @@ namespace wd::utils
     public:
       explicit Log(std::string_view ident, int facility);
       ~Log() override;
-      Log(Log const&) = delete;
-      Log& operator=(Log const&) = delete;
 
       auto setPriority(const LogPriority& priority) -> void;
 

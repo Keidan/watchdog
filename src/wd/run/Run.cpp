@@ -40,7 +40,10 @@ constexpr std::uint32_t MINIMUM_COUNT_VALUE = 1;
 /* Public functions ---------------------------------------------------------*/
 Run::Run(rlimit_t& limits, std::string_view working) : m_limits(limits), m_working(working) {}
 
-Run::~Run()
+/**
+ * @brief Kills the child process.
+*/
+auto Run::killChild() -> void
 {
   if (m_child != -1)
   {
@@ -90,6 +93,7 @@ auto Run::spawn(const std::string& name, const std::vector<std::string>& args, c
         std::clog << LogPriority::EMERG << "Unable to wait for the process '" << args[0] << "[" << m_child << "]' : (" << errno << ") " << strerror(errno)
                   << "." << std::endl;
       }
+      killChild();
       m_child = -1;
     }
   }
