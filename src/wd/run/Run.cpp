@@ -25,9 +25,9 @@
 extern "C"
 {
   int execve(const char* filename, const char** argvs, const char** envp);
-#ifdef DEBUG
+#ifdef GCOV
   extern void __gcov_dump();
-#endif /* DEBUG */
+#endif /* GCOV */
 }
 /* Usings -------------------------------------------------------------------*/
 using namespace wd::run;
@@ -75,7 +75,7 @@ auto Run::spawn(const std::string& name, const std::vector<std::string>& args, c
       if (!Helper::changeDir(m_working))
         std::clog << LogPriority::WARNING << "Unable to change the current directory:'" << m_working << "': (" << errno << ") " << strerror(errno) << "."
                   << std::endl;
-#ifdef DEBUG
+#ifdef GCOV
       /* Force dump here */
       __gcov_dump();
       execve(name.c_str(), &m_cArgs[0], &m_cEnvs[0]);
@@ -85,12 +85,12 @@ auto Run::spawn(const std::string& name, const std::vector<std::string>& args, c
         std::clog << LogPriority::EMERG << "Unable to starts the process name:'" << args[0] << "', path: '" << name << "': (" << errno << ") "
                   << strerror(errno) << "." << std::endl;
       }
-#endif /* DEBUG */
+#endif /* GCOV */
       _exit(0);
     }
     else /* Parent process */
     {
-#ifdef DEBUG
+#ifdef GCOV
       waitpid(m_child, &status, WUNTRACED | WCONTINUED);
 #else
       if (-1 == waitpid(m_child, &status, WUNTRACED | WCONTINUED))
@@ -98,18 +98,18 @@ auto Run::spawn(const std::string& name, const std::vector<std::string>& args, c
         std::clog << LogPriority::EMERG << "Unable to wait for the process '" << args[0] << "[" << m_child << "]' : (" << errno << ") " << strerror(errno)
                   << "." << std::endl;
       }
-#endif /* DEBUG */
+#endif /* GCOV */
       killChild();
       m_child = -1;
     }
   }
-#ifndef DEBUG
+#ifndef GCOV
   else /* fork failed */
   {
     std::clog << LogPriority::EMERG << "Fork failed '" << args[0] << "' : (" << errno << ") " << strerror(errno) << "." << std::endl;
     return false;
   }
-#endif /* DEBUG */
+#endif /* GCOV */
   return true;
 }
 
