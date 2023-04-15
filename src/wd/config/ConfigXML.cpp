@@ -90,11 +90,6 @@ auto ConfigXML::getTemplate() -> std::string
  */
 auto ConfigXML::initializeXML(xmlDocPtr& doc, const char* filename) const -> bool
 {
-  if (nullptr == m_process)
-  {
-    std::clog << LogPriority::ERR << "Unloaded object" << std::endl;
-    return false;
-  }
 
   if (!fs::exists(filename))
   {

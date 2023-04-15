@@ -66,12 +66,6 @@ auto ConfigJSON::load(const std::string& filename) -> bool
 {
   std::ifstream ifs;
 
-  if (nullptr == m_process)
-  {
-    std::clog << LogPriority::ERR << "Unloaded object" << std::endl;
-    return false;
-  }
-
   ifs.open(filename);
   if (!ifs.is_open() || ifs.fail())
   {
