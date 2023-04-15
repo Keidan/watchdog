@@ -91,9 +91,8 @@ namespace wd::config
        *
        * @param[in,out] node The current node.
        * @param[in,out] doc The root node document.
-       * @retval false on error, otherwise true.
        */
-      auto extractEnvs(_xmlNode* node, xmlDocPtr& doc) const -> bool;
+      auto extractEnvs(_xmlNode* node) const -> void;
 
       /**
        * @brief Extracts the args.

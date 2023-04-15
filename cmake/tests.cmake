@@ -212,10 +212,28 @@ if(HAVE_XML_H)
     COMMAND /bin/bash ${CMAKE_SOURCE_DIR}/cmake/test_configurations.sh ${binary} xml empty_name
   )
   set_tests_properties(${tname} PROPERTIES WILL_FAIL TRUE)
+
+  set(tname test_cfg_xml_working)
+  add_test(NAME ${tname}
+    COMMAND /bin/bash ${CMAKE_SOURCE_DIR}/cmake/test_configurations.sh ${binary} xml working
+  )
+  set_tests_properties(${tname} PROPERTIES WILL_FAIL FALSE)
   
   set(tname test_cfg_xml_env)
   add_test(NAME ${tname}
     COMMAND /bin/bash ${CMAKE_SOURCE_DIR}/cmake/test_configurations.sh ${binary} xml env
+  )
+  set_tests_properties(${tname} PROPERTIES WILL_FAIL FALSE)
+
+  set(tname test_cfg_xml_error1)
+  add_test(NAME ${tname}
+    COMMAND /bin/bash ${CMAKE_SOURCE_DIR}/cmake/test_configurations.sh ${binary} xml env_error1
+  )
+  set_tests_properties(${tname} PROPERTIES WILL_FAIL FALSE)
+
+  set(tname test_cfg_xml_error2)
+  add_test(NAME ${tname}
+    COMMAND /bin/bash ${CMAKE_SOURCE_DIR}/cmake/test_configurations.sh ${binary} xml env_error2
   )
   set_tests_properties(${tname} PROPERTIES WILL_FAIL FALSE)
 endif()
@@ -244,9 +262,27 @@ if(HAVE_JSON_H)
   )
   set_tests_properties(${tname} PROPERTIES WILL_FAIL TRUE)
 
+  set(tname test_cfg_json_working)
+  add_test(NAME ${tname}
+    COMMAND /bin/bash ${CMAKE_SOURCE_DIR}/cmake/test_configurations.sh ${binary} json working
+  )
+  set_tests_properties(${tname} PROPERTIES WILL_FAIL FALSE)
+
   set(tname test_cfg_json_env)
   add_test(NAME ${tname}
     COMMAND /bin/bash ${CMAKE_SOURCE_DIR}/cmake/test_configurations.sh ${binary} json env
+  )
+  set_tests_properties(${tname} PROPERTIES WILL_FAIL FALSE)
+
+  set(tname test_cfg_json_error1)
+  add_test(NAME ${tname}
+    COMMAND /bin/bash ${CMAKE_SOURCE_DIR}/cmake/test_configurations.sh ${binary} json env_error1
+  )
+  set_tests_properties(${tname} PROPERTIES WILL_FAIL FALSE)
+
+  set(tname test_cfg_json_error2)
+  add_test(NAME ${tname}
+    COMMAND /bin/bash ${CMAKE_SOURCE_DIR}/cmake/test_configurations.sh ${binary} json env_error2
   )
   set_tests_properties(${tname} PROPERTIES WILL_FAIL FALSE)
 endif()

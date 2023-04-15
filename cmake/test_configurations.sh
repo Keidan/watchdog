@@ -41,6 +41,18 @@ function create_empty_name()
     ;;
   esac
 }
+function create_working()
+{
+  echo "" > ${full}
+  case ${type} in
+  "xml") 
+    echo "<?xml version=\"1.0\" encoding=\"utf-8\"?><process name=\"ls\"><working>/</working><path>/bin</path><args><arg>-a</arg><arg>-l</arg><arg>-s</arg><arg>/home</arg></args></process>" > ${full}
+    ;;
+  "json") 
+    echo "{\"process\": {\"name\": \"ls\",\"path\": \"/bin\",\"working\": \"/\",\"args\": [\"-a\",\"-l\",\"-s\",\"/home\"]}}" > ${full}
+    ;;
+  esac
+}
 function create_env()
 {
   echo "" > ${full}
@@ -53,6 +65,30 @@ function create_env()
     ;;
   esac
 }
+function create_env_error1()
+{
+  echo "" > ${full}
+  case ${type} in
+  "xml") 
+    echo "<?xml version=\"1.0\" encoding=\"utf-8\"?><process name=\"ls\"><path>/bin</path><args><arg>-a</arg><arg>-l</arg><arg>-s</arg><arg>/home</arg></args><envs><env name=\"wd\"/></envs></process>" > ${full}
+    ;;
+  "json") 
+    echo "{\"process\": {\"name\": \"ls\",\"path\": \"/bin\",\"args\": [\"-a\",\"-l\",\"-s\",\"/home\"],\"envs\": [{\"name\": \"wd\"}]}}" > ${full}
+    ;;
+  esac
+}
+function create_env_error2()
+{
+  echo "" > ${full}
+  case ${type} in
+  "xml") 
+    echo "<?xml version=\"1.0\" encoding=\"utf-8\"?><process name=\"ls\"><path>/bin</path><args><arg>-a</arg><arg>-l</arg><arg>-s</arg><arg>/home</arg></args><envs><env value=\"1\"/></envs></process>" > ${full}
+    ;;
+  "json") 
+    echo "{\"process\": {\"name\": \"ls\",\"path\": \"/bin\",\"args\": [\"-a\",\"-l\",\"-s\",\"/home\"],\"envs\": [{\"value\": \"1\"}]}}" > ${full}
+    ;;
+  esac
+}
 
 mkdir -p ${dir}
 case ${test} in
@@ -60,7 +96,10 @@ case ${test} in
   "empty") create_empty ;;
   "no_process") create_no_process ;;
   "empty_name") create_empty_name ;;
+  "working") create_working ;;
   "env") create_env ;;
+  "env_error1") create_env_error1 ;;
+  "env_error2") create_env_error2 ;;
   *) 
     echo "Invalid test"
     exit 1

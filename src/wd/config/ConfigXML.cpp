@@ -52,6 +52,7 @@ auto ConfigXML::cleanup(xmlDocPtr& doc) -> void
 {
   if (doc)
     xmlFreeDoc(doc);
+  doc = nullptr;
   xmlCleanupParser();
 }
 
@@ -121,12 +122,6 @@ auto ConfigXML::load(const std::string& filename) -> bool
 
   /* Place the current node to the root node */
   auto curL0 = xmlDocGetRootElement(doc);
-  if (nullptr == curL0)
-  {
-    std::clog << LogPriority::ERR << "Empty document!" << std::endl;
-    cleanup(doc);
-    return false;
-  }
 
   /* Validation step */
   if (xmlStrcmp(curL0->name, toXML("process")))
@@ -184,7 +179,7 @@ auto ConfigXML::load(const std::string& filename) -> bool
     }
     else if (!xmlStrcmp(curL1->name, toXML("envs")))
     {
-      extractEnvs(curL1->xmlChildrenNode, doc);
+      extractEnvs(curL1->xmlChildrenNode);
     }
     curL1 = curL1->next;
   }
@@ -219,9 +214,8 @@ auto ConfigXML::extracArgs(_xmlNode* node) const -> void
  *
  * @param[in,out] node The current node.
  * @param[in,out] doc The root node document.
- * @retval false on error, otherwise true.
  */
-auto ConfigXML::extractEnvs(_xmlNode* node, xmlDocPtr& doc) const -> bool
+auto ConfigXML::extractEnvs(_xmlNode* node) const -> void
 {
   auto curL2 = node;
   while (nullptr != curL2)
@@ -232,14 +226,12 @@ auto ConfigXML::extractEnvs(_xmlNode* node, xmlDocPtr& doc) const -> bool
       if (!extractEnv(&attribute, curL2->doc))
       {
         std::clog << LogPriority::ERR << "Unable to decode the environment variable" << std::endl;
-        cleanup(doc);
-        return false;
       }
     }
     curL2 = curL2->next;
   }
-  return true;
 }
+
 /**
  * @brief Extracts the env.
  *
