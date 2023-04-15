@@ -42,7 +42,7 @@ Run::Run(rlimit_t& limits, std::string_view working) : m_limits(limits), m_worki
 
 /**
  * @brief Kills the child process.
-*/
+ */
 auto Run::killChild() -> void
 {
   if (m_child != -1)
@@ -84,6 +84,10 @@ auto Run::spawn(const std::string& name, const std::vector<std::string>& args, c
         std::clog << LogPriority::EMERG << "Unable to starts the process name:'" << args[0] << "', path: '" << name << "': (" << errno << ") "
                   << strerror(errno) << "." << std::endl;
       }
+#ifdef DEBUG
+      /* Force dump here too (case of error with execve) */
+      __gcov_dump();
+#endif /* DEBUG */
       _exit(0);
     }
     else /* Parent process */

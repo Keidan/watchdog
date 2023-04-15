@@ -3,120 +3,250 @@ enable_testing()
 set(binary ${APP_BINARY_DIR}/${CMAKE_PROJECT_NAME})
 set(max_only --max-respawn 0)
 set(max_and_dir ${max_only} --directory ${CMAKE_SOURCE_DIR}/samples)
-set(standalone ${max_only} --path /bin --name ls --arg -a --arg -l --arg -s --arg /home --env wd=10)
- 
-add_test(NAME test_help 
+set(standalone_no_name ${max_only} --path /bin --arg -a --arg -l --arg -s --arg /home --env wd=10)
+set(standalone ${standalone_no_name} --name ls)
+
+set(tname test_help)
+add_test(NAME ${tname} 
   COMMAND ${binary} --help
 )
+set_tests_properties(${tname} PROPERTIES WILL_FAIL FALSE)
 
-add_test(NAME test_version 
+set(tname test_version)
+add_test(NAME ${tname} 
   COMMAND ${binary} --version
 )
+set_tests_properties(${tname} PROPERTIES WILL_FAIL FALSE)
 
-add_test(NAME test_invalid_param
+set(tname test_invalid_param)
+add_test(NAME ${tname}
   COMMAND ${binary} --hey
 )
-set_tests_properties(test_invalid_param PROPERTIES WILL_FAIL TRUE)
+set_tests_properties(${tname} PROPERTIES WILL_FAIL TRUE)
 
-add_test(NAME test_new_config_xml
+set(tname test_new_cfg_xml)
+add_test(NAME ${tname}
   COMMAND ${binary} -z --directory /tmp/cfg --config test.xml
 )
 if(NOT HAVE_XML_H)
-  set_tests_properties(test_new_config_xml PROPERTIES WILL_FAIL TRUE)
+  set_tests_properties(${tname} PROPERTIES WILL_FAIL TRUE)
+else()
+  set_tests_properties(${tname} PROPERTIES WILL_FAIL FALSE)
 endif()
 
-add_test(NAME test_new_config_json
+set(tname test_new_cfg_json)
+add_test(NAME ${tname}
   COMMAND ${binary} -z --directory /tmp/cfg --config test.json
 )
 if(NOT HAVE_JSON_H)
-  set_tests_properties(test_new_config_json PROPERTIES WILL_FAIL TRUE)
+  set_tests_properties(${tname} PROPERTIES WILL_FAIL TRUE)
+else()
+  set_tests_properties(${tname} PROPERTIES WILL_FAIL FALSE)
 endif()
 
-add_test(NAME test_new_config_error
+set(tname test_new_cfg_error1)
+add_test(NAME ${tname}
   COMMAND ${binary} -z --config test.xml
 )
-set_tests_properties(test_new_config_error PROPERTIES WILL_FAIL TRUE)
+set_tests_properties(${tname} PROPERTIES WILL_FAIL TRUE)
 
-add_test(NAME test_default_dir
+set(tname test_new_cfg_error2)
+add_test(NAME ${tname}
+  COMMAND ${binary} -z --directory /tmp/cfg
+)
+set_tests_properties(${tname} PROPERTIES WILL_FAIL TRUE)
+
+set(tname test_default_dir)
+add_test(NAME ${tname}
   COMMAND ${binary} ${max_only} --config watchdog.xml
 )
-set_tests_properties(test_default_dir PROPERTIES WILL_FAIL TRUE)
+set_tests_properties(${tname} PROPERTIES WILL_FAIL TRUE)
 
-
-add_test(NAME test_invalid_type
+set(tname test_invalid_type)
+add_test(NAME ${tname}
   COMMAND ${binary} ${max_and_dir} -t csv
 )
-set_tests_properties(test_invalid_type PROPERTIES WILL_FAIL TRUE)
+set_tests_properties(${tname} PROPERTIES WILL_FAIL TRUE)
 
-add_test(NAME test_cfg_file_xml
+set(tname test_cfg_xml)
+add_test(NAME ${tname}
   COMMAND ${binary} ${max_and_dir} --config watchdog.xml
 )
 if(NOT HAVE_XML_H)
-  set_tests_properties(test_cfg_file_xml PROPERTIES WILL_FAIL TRUE)
+  set_tests_properties(${tname} PROPERTIES WILL_FAIL TRUE)
+else()
+  set_tests_properties(${tname} PROPERTIES WILL_FAIL FALSE)
 endif()
 
-add_test(NAME test_cfg_file_json
+set(tname test_cfg_json)
+add_test(NAME ${tname}
   COMMAND ${binary} ${max_and_dir} --config watchdog.json
 )
 if(NOT HAVE_JSON_H)
-  set_tests_properties(test_cfg_file_json PROPERTIES WILL_FAIL TRUE)
+  set_tests_properties(${tname} PROPERTIES WILL_FAIL TRUE)
+else()
+  set_tests_properties(${tname} PROPERTIES WILL_FAIL FALSE)
 endif()
 
-add_test(NAME test_xml 
+set(tname test_type_xml)
+add_test(NAME ${tname} 
   COMMAND ${binary} ${max_and_dir} -t xml
 )
 if(NOT HAVE_XML_H)
-  set_tests_properties(test_xml PROPERTIES WILL_FAIL TRUE)
+  set_tests_properties(${tname} PROPERTIES WILL_FAIL TRUE)
+else()
+  set_tests_properties(${tname} PROPERTIES WILL_FAIL FALSE)
 endif()
 
-add_test(NAME test_json 
+set(tname test_type_json)
+add_test(NAME ${tname} 
   COMMAND ${binary} ${max_and_dir} -t json
 )
 if(NOT HAVE_JSON_H)
-  set_tests_properties(test_json PROPERTIES WILL_FAIL TRUE)
+  set_tests_properties(${tname} PROPERTIES WILL_FAIL TRUE)
+else()
+  set_tests_properties(${tname} PROPERTIES WILL_FAIL FALSE)
 endif()
 
-add_test(NAME test_standalone
+set(tname test_standalone)
+add_test(NAME ${tname}
   COMMAND ${binary} ${standalone}
 )
+set_tests_properties(${tname} PROPERTIES WILL_FAIL FALSE)
 
-add_test(NAME test_standalone_error
+set(tname test_standalone_error1)
+add_test(NAME ${tname}
   COMMAND ${binary} ${max_only} --name lssss
 )
-set_tests_properties(test_standalone_error PROPERTIES WILL_FAIL TRUE)
+set_tests_properties(${tname} PROPERTIES WILL_FAIL TRUE)
 
-add_test(NAME test_standalone_no_spam
+set(tname test_standalone_error2)
+add_test(NAME ${tname}
+  COMMAND ${binary} ${standalone_no_name} --name lssss
+)
+set_tests_properties(${tname} PROPERTIES WILL_FAIL FALSE)
+
+set(tname test_standalone_no_spam)
+add_test(NAME ${tname}
   COMMAND ${binary} ${standalone} --disable-spam-detect 
 )
+set_tests_properties(${tname} PROPERTIES WILL_FAIL FALSE)
 
-add_test(NAME test_standalone_working
+set(tname test_standalone_working)
+add_test(NAME ${tname}
   COMMAND ${binary} ${standalone} --working ${CMAKE_SOURCE_DIR}
 )
+set_tests_properties(${tname} PROPERTIES WILL_FAIL FALSE)
 
-add_test(NAME test_err_max_respawn
+set(tname test_standalone_working_notfound)
+add_test(NAME ${tname}
+  COMMAND ${binary} ${standalone} --working /notfounddir
+)
+set_tests_properties(${tname} PROPERTIES WILL_FAIL FALSE)
+
+set(tname test_err_max_respawn)
+add_test(NAME ${tname}
   COMMAND ${binary} ${standalone} --max-respawn error
 )
-set_tests_properties(test_err_max_respawn PROPERTIES WILL_FAIL TRUE)
+set_tests_properties(${tname} PROPERTIES WILL_FAIL TRUE)
 
-add_test(NAME test_err_5_max_respawn
+set(tname test_err_5_max_respawn)
+add_test(NAME ${tname}
   COMMAND ${binary} ${standalone} --max-respawn 5
 )
-set_tests_properties(test_err_5_max_respawn PROPERTIES WILL_FAIL TRUE)
+set_tests_properties(${tname} PROPERTIES WILL_FAIL TRUE)
 
-add_test(NAME test_standalone_pid
+set(tname test_standalone_pid)
+add_test(NAME ${tname}
   COMMAND ${binary} ${standalone} --pidfile /tmp/wd.pid --pid
 )
+set_tests_properties(${tname} PROPERTIES WILL_FAIL FALSE)
 
-add_test(NAME test_min_respawn
+set(tname test_standalone_pid_error)
+add_test(NAME ${tname}
+  COMMAND ${binary} ${standalone} --pid
+)
+set_tests_properties(${tname} PROPERTIES WILL_FAIL TRUE)
+
+set(tname test_min_respawn)
+add_test(NAME ${tname}
   COMMAND ${binary} ${standalone} --min-respawn-delay 10
 )
+set_tests_properties(${tname} PROPERTIES WILL_FAIL FALSE)
 
-add_test(NAME test_err_min_respawn1
+set(tname test_err_min_respawn1)
+add_test(NAME ${tname}
   COMMAND ${binary} ${standalone} --min-respawn-delay error
 )
-set_tests_properties(test_err_min_respawn1 PROPERTIES WILL_FAIL TRUE)
+set_tests_properties(${tname} PROPERTIES WILL_FAIL TRUE)
 
-add_test(NAME test_err_min_respawn2
+set(tname test_err_min_respawn2)
+add_test(NAME ${tname}
   COMMAND ${binary} ${standalone} --min-respawn-delay -1
 )
-set_tests_properties(test_err_min_respawn2 PROPERTIES WILL_FAIL TRUE)
+set_tests_properties(${tname} PROPERTIES WILL_FAIL TRUE)
+
+# Tests configs
+
+if(HAVE_XML_H)
+  set(tname test_cfg_xml_no_file)
+  add_test(NAME ${tname}
+    COMMAND /bin/bash ${CMAKE_SOURCE_DIR}/cmake/test_configurations.sh ${binary} xml no_file
+  )
+  set_tests_properties(${tname} PROPERTIES WILL_FAIL TRUE)
+
+  set(tname test_cfg_xml_empty)
+  add_test(NAME ${tname}
+    COMMAND /bin/bash ${CMAKE_SOURCE_DIR}/cmake/test_configurations.sh ${binary} xml empty
+  )
+  set_tests_properties(${tname} PROPERTIES WILL_FAIL TRUE)
+
+  set(tname test_cfg_xml_no_process)
+  add_test(NAME ${tname}
+    COMMAND /bin/bash ${CMAKE_SOURCE_DIR}/cmake/test_configurations.sh ${binary} xml no_process
+  )
+  set_tests_properties(${tname} PROPERTIES WILL_FAIL TRUE)
+
+  set(tname test_cfg_xml_empty_name)
+  add_test(NAME ${tname}
+    COMMAND /bin/bash ${CMAKE_SOURCE_DIR}/cmake/test_configurations.sh ${binary} xml empty_name
+  )
+  set_tests_properties(${tname} PROPERTIES WILL_FAIL TRUE)
+  
+  set(tname test_cfg_xml_env)
+  add_test(NAME ${tname}
+    COMMAND /bin/bash ${CMAKE_SOURCE_DIR}/cmake/test_configurations.sh ${binary} xml env
+  )
+  set_tests_properties(${tname} PROPERTIES WILL_FAIL FALSE)
+endif()
+if(HAVE_JSON_H)
+  set(tname test_cfg_json_no_file)
+  add_test(NAME ${tname}
+    COMMAND /bin/bash ${CMAKE_SOURCE_DIR}/cmake/test_configurations.sh ${binary} json no_file
+  )
+  set_tests_properties(${tname} PROPERTIES WILL_FAIL TRUE)
+
+  set(tname test_cfg_json_empty)
+  add_test(NAME ${tname}
+    COMMAND /bin/bash ${CMAKE_SOURCE_DIR}/cmake/test_configurations.sh ${binary} json empty
+  )
+  set_tests_properties(${tname} PROPERTIES WILL_FAIL TRUE)
+
+  set(tname test_cfg_json_no_process)
+  add_test(NAME ${tname}
+    COMMAND /bin/bash ${CMAKE_SOURCE_DIR}/cmake/test_configurations.sh ${binary} json no_process
+  )
+  set_tests_properties(${tname} PROPERTIES WILL_FAIL TRUE)
+
+  set(tname test_cfg_json_empty_name)
+  add_test(NAME ${tname}
+    COMMAND /bin/bash ${CMAKE_SOURCE_DIR}/cmake/test_configurations.sh ${binary} json empty_name
+  )
+  set_tests_properties(${tname} PROPERTIES WILL_FAIL TRUE)
+
+  set(tname test_cfg_json_env)
+  add_test(NAME ${tname}
+    COMMAND /bin/bash ${CMAKE_SOURCE_DIR}/cmake/test_configurations.sh ${binary} json env
+  )
+  set_tests_properties(${tname} PROPERTIES WILL_FAIL FALSE)
+endif()

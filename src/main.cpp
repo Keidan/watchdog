@@ -291,4 +291,9 @@ static auto atExit() -> void
     watchdog->kill();
 }
 
-[[noreturn]] static auto sigExit([[maybe_unused]] int s) -> void { exit(0); }
+[[noreturn]] static auto sigExit([[maybe_unused]] int s) -> void
+{
+  if (s != EXIT_FAILURE)
+    s = 0;
+  exit(s);
+}

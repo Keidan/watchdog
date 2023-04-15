@@ -55,8 +55,6 @@ auto Watchdog::load([[maybe_unused]] ConfigType configType, [[maybe_unused]] std
  */
 auto Watchdog::execute(const WatchdogConfig& wdConfig, const std::shared_ptr<run::Process>& process) const -> bool
 {
-
-  auto loadFromFile = false;
 #if defined(HAVE_XML_H) || defined(HAVE_JSON_H)
   if (wdConfig.createNew)
   {
@@ -73,7 +71,6 @@ auto Watchdog::execute(const WatchdogConfig& wdConfig, const std::shared_ptr<run
   {
     return false;
   }
-  loadFromFile = true;
 #endif /* defined(HAVE_XML_H) || defined(HAVE_JSON_H) */
 
   if (process->getName().empty())
@@ -97,11 +94,6 @@ auto Watchdog::execute(const WatchdogConfig& wdConfig, const std::shared_ptr<run
   /* add the parent env variables */
   Helper::completeEnv(process);
   auto cmdPath = process->getPath();
-  if (!loadFromFile && process->getArgs().empty())
-  {
-    std::clog << LogPriority::EMERG << "No given process" << std::endl;
-    return false;
-  }
   Helper::normalizePath(cmdPath);
   cmdPath.append(process->getArgs()[0]);
   Run r(limits, process->getWorking());
