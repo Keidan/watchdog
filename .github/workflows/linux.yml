@@ -24,6 +24,7 @@ jobs:
     env:
       CMAKE_GENERATOR: "Ninja"
       BUILD_WRAPPER_OUT_DIR: build_wrapper_output_directory_linux
+      COVERAGE_XML: coverage.xml
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - name: Checkout the code
@@ -68,7 +69,7 @@ jobs:
           cmake --build build --target gcov
       - name: Collect coverage into one XML report
         run: |
-          gcovr --exclude-throw-branches --sonarqube > coverage.xml
+          gcovr --exclude-throw-branches --sonarqube > ${{ env.COVERAGE_XML }}
       - name: Configure for release
         shell: bash
         run: cmake -S . -B build -DDISTRIBUTION=release -G "${{ env.CMAKE_GENERATOR }}"
@@ -85,5 +86,4 @@ jobs:
         run: |
           sonar-scanner \
             --define sonar.cfamily.build-wrapper-output="${{ env.BUILD_WRAPPER_OUT_DIR }}" \
-            --define sonar.coverageReportPaths=coverage.xml \
-            --define sonar.coverage.exclusions=**/*test*, nlohmann-json/*
+            --define sonar.coverageReportPaths=${{ env.COVERAGE_XML }}
