@@ -58,8 +58,16 @@ namespace wd
   class Watchdog
   {
     public:
-      Watchdog(ConfigType configType, std::shared_ptr<run::Process> process);
+      Watchdog() = default;
       ~Watchdog() = default;
+
+      /**
+       * @brief Loads the internal contexts.
+       * 
+       * @param[in] configType The config type.
+       * @param[in] process The associated process.
+       */
+      auto load([[maybe_unused]] ConfigType configType, [[maybe_unused]] std::shared_ptr<run::Process> process) -> void;
 
       /**
        * @brief Kills the process and deletes the pid file.

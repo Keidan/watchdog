@@ -27,6 +27,8 @@ namespace wd::run
     public:
       Run(wd::utils::rlimit_t& limits, std::string_view working);
       virtual ~Run();
+      Run(Run const&) = delete;
+      Run& operator=(Run const&) = delete;
 
       /**
        * @brief Starts a process and waits for output.

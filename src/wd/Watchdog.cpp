@@ -23,7 +23,14 @@ using utils::LogPriority;
 
 /* Public functions ---------------------------------------------------------*/
 
-Watchdog::Watchdog(ConfigType configType, std::shared_ptr<run::Process> process)
+/**
+ * @brief Loads the internal contexts.
+ *
+ * @param[in] configType The config type.
+ * @param[in] process The associated process.
+ * @retval false on error.
+ */
+auto Watchdog::load([[maybe_unused]] ConfigType configType, [[maybe_unused]] std::shared_ptr<run::Process> process) -> void
 {
 #ifdef HAVE_JSON_H
   if (ConfigType::JSON == configType)

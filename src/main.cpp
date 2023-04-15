@@ -46,18 +46,18 @@ static constexpr auto* USAGE_FTYPE = "possible value: xml or json";
 #endif   /* defined(HAVE_XML_H) || defined(HAVE_JSON_H) */
 
 /* Private variables --------------------------------------------------------*/
-static std::vector<struct option> long_options = {{"help", 0, nullptr, 'h'},        {"version", 0, nullptr, 'v'},
+static const std::vector<struct option> long_options = {{"help", 0, nullptr, 'h'},        {"version", 0, nullptr, 'v'},
 #if defined(HAVE_XML_H) || defined(HAVE_JSON_H)
-                                                  {"config", 1, nullptr, 'c'},      {"directory", 1, nullptr, 'd'},
-                                                  {"new", 0, nullptr, 'z'},         {"type", 1, nullptr, 't'},
+                                                        {"config", 1, nullptr, 'c'},      {"directory", 1, nullptr, 'd'},
+                                                        {"new", 0, nullptr, 'z'},         {"type", 1, nullptr, 't'},
 #endif /* HAVE_XML_H HAVE_JSON_H */
-                                                  {"path", 1, nullptr, 'p'},        {"working", 1, nullptr, 'w'},
-                                                  {"name", 1, nullptr, 'n'},        {"arg", 1, nullptr, 'a'},
-                                                  {"env", 1, nullptr, 'e'},         {"pid", 0, nullptr, '0'},
-                                                  {"pidfile", 1, nullptr, '1'},     {"disable-spam-detect", 0, nullptr, '2'},
-                                                  {"max-respawn", 1, nullptr, '3'}, {"min-respawn-delay", 1, nullptr, '4'},
-                                                  {nullptr, 0, nullptr, 0}};
-std::unique_ptr<Watchdog> watchdog;
+                                                        {"path", 1, nullptr, 'p'},        {"working", 1, nullptr, 'w'},
+                                                        {"name", 1, nullptr, 'n'},        {"arg", 1, nullptr, 'a'},
+                                                        {"env", 1, nullptr, 'e'},         {"pid", 0, nullptr, '0'},
+                                                        {"pidfile", 1, nullptr, '1'},     {"disable-spam-detect", 0, nullptr, '2'},
+                                                        {"max-respawn", 1, nullptr, '3'}, {"min-respawn-delay", 1, nullptr, '4'},
+                                                        {nullptr, 0, nullptr, 0}};
+static const std::unique_ptr<Watchdog> watchdog = std::make_unique<Watchdog>();
 /* Static forward -----------------------------------------------------------*/
 static auto getConfigType([[maybe_unused]] const char* input, [[maybe_unused]] bool fromExt) -> ConfigType;
 #if defined(HAVE_XML_H) || defined(HAVE_JSON_H)
@@ -181,7 +181,7 @@ auto main(int argc, char** argv) -> int
     usage(wdConfig.binaryName, EXIT_FAILURE);
   }
 
-  watchdog = std::make_unique<Watchdog>(configType, process);
+  watchdog->load(configType, process);
   watchdog->setConfigPID(configPID, wdConfig.binaryName);
 
 #if defined(HAVE_XML_H) || defined(HAVE_JSON_H)
