@@ -78,34 +78,38 @@ auto Run::spawn(const std::string& name, const std::vector<std::string>& args, c
 #ifdef DEBUG
       /* Force dump here */
       __gcov_dump();
-#endif /* DEBUG */
+      execve(name.c_str(), &m_cArgs[0], &m_cEnvs[0]);
+#else
       if (-1 == execve(name.c_str(), &m_cArgs[0], &m_cEnvs[0]))
       {
         std::clog << LogPriority::EMERG << "Unable to starts the process name:'" << args[0] << "', path: '" << name << "': (" << errno << ") "
                   << strerror(errno) << "." << std::endl;
       }
-#ifdef DEBUG
-      /* Force dump here too (case of error with execve) */
-      __gcov_dump();
 #endif /* DEBUG */
       _exit(0);
     }
     else /* Parent process */
     {
+#ifdef DEBUG
+      waitpid(m_child, &status, WUNTRACED | WCONTINUED);
+#else
       if (-1 == waitpid(m_child, &status, WUNTRACED | WCONTINUED))
       {
         std::clog << LogPriority::EMERG << "Unable to wait for the process '" << args[0] << "[" << m_child << "]' : (" << errno << ") " << strerror(errno)
                   << "." << std::endl;
       }
+#endif /* DEBUG */
       killChild();
       m_child = -1;
     }
   }
+#ifndef DEBUG
   else /* fork failed */
   {
     std::clog << LogPriority::EMERG << "Fork failed '" << args[0] << "' : (" << errno << ") " << strerror(errno) << "." << std::endl;
     return false;
   }
+#endif /* DEBUG */
   return true;
 }
 
