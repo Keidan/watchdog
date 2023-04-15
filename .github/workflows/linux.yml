@@ -46,7 +46,7 @@ jobs:
       - name: Install dependencies
         run: |
             sudo apt-get update
-            sudo apt-get install cmake ninja-build
+            sudo apt-get install cmake ninja-build lcov
             ninja --version
             cmake --version
             gcc --version
