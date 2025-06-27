@@ -6,12 +6,10 @@
 /* Includes -----------------------------------------------------------------*/
 /* ugly hack part 1 */
 #define execve xexecve
-#include <chrono>
 #include <cstring>
 #include <iostream>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <thread>
 #include <wd/run/Run.hpp>
 #include <wd/utils/Log.hpp>
 
@@ -35,7 +33,6 @@ using wd::utils::Helper;
 using wd::utils::LogPriority;
 using wd::utils::rlimit_t;
 
-constexpr std::uint32_t MINIMUM_COUNT_VALUE = 1;
 
 /* Public functions ---------------------------------------------------------*/
 Run::Run(rlimit_t& limits, std::string_view working) : m_limits(limits), m_working(working) {}
@@ -153,33 +150,4 @@ auto Run::respawn(const std::string& name, const std::vector<std::string>& args,
   } while (true);
 
   return result;
-}
-
-/**
- * @brief Elapsed time management.
- *
- * @param[in] name The process name.
- * @param[in,out] count The number of respawn.
- * @param[in] ref Ref time.
- * @param[in] maxRespawn The maximum number of respawn allowed.
- * @param[in] minRespawnDelay The minimum respawn delay before starting spam detection.
- * @retval false on error.
- */
-template <class duration_t = std::chrono::milliseconds>
-auto Run::processElapsed(std::uint32_t& count, std::chrono::time_point<clock_t, duration_t> const& ref, std::uint32_t maxRespawn,
-                         std::int64_t minRespawnDelay) const -> bool
-{
-  if (auto elapsed = Helper::clockElapsed(ref); elapsed < minRespawnDelay)
-  {
-    if (count == maxRespawn)
-    {
-      return false;
-    }
-    count++;
-    auto delay = count * elapsed;
-    std::this_thread::sleep_for(std::chrono::microseconds(delay));
-  }
-  else
-    count = MINIMUM_COUNT_VALUE;
-  return true;
 }

@@ -6,6 +6,8 @@
 #pragma once
 
 /* Includes -----------------------------------------------------------------*/
+#include <chrono>
+#include <thread>
 #include <array>
 #include <string>
 #include <string_view>
@@ -57,6 +59,7 @@ namespace wd::run
                    std::uint32_t maxRespawn, std::int64_t minRespawnDelay) -> bool;
 
     private:
+      constexpr std::uint32_t MINIMUM_COUNT_VALUE = 1;
       pid_t m_child = -1;
       wd::utils::rlimit_t& m_limits;
       std::string m_working;
@@ -72,8 +75,23 @@ namespace wd::run
        * @param[in] minRespawnDelay The minimum respawn delay before starting spam detection.
        * @retval false on error.
        */
-      template <class duration_t = std::chrono::milliseconds>
+      template <class clock_t = std::chrono::steady_clock, class duration_t = std::chrono::milliseconds>
       auto processElapsed(std::uint32_t& count, std::chrono::time_point<clock_t, duration_t> const& ref, std::uint32_t maxRespawn,
-                          std::int64_t minRespawnDelay) const -> bool;
+                          std::int64_t minRespawnDelay) const -> bool
+      {
+        if (auto elapsed = wd::utils::Helper::clockElapsed(ref); elapsed < minRespawnDelay)
+        {
+          if (count == maxRespawn)
+          {
+            return false;
+          }
+          count++;
+          auto delay = count * elapsed;
+          std::this_thread::sleep_for(std::chrono::microseconds(delay));
+        }
+        else
+          count = MINIMUM_COUNT_VALUE;
+        return true;
+      }
   };
 } // namespace wd::run
