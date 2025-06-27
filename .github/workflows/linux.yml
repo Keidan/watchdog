@@ -51,13 +51,13 @@ jobs:
             ninja --version
             cmake --version
             gcc --version
-      - name: Set up Python 3.8 for gcovr
+      - name: Set up Python 3.13 for gcovr
         uses: actions/setup-python@v5
         with:
-          python-version: 3.8
-      - name: Install gcovr 5.0
+          python-version: 3.13
+      - name: Install gcovr
         run: |
-          pip install gcovr==5.0 # 5.1 is not supported
+          pip install gcovr
       - name: Install sonar-scanner and build-wrapper
         uses: SonarSource/sonarcloud-github-c-cpp@v1
       - name: Configure for debug
