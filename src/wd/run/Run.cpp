@@ -165,7 +165,7 @@ auto Run::respawn(const std::string& name, const std::vector<std::string>& args,
  * @param[in] minRespawnDelay The minimum respawn delay before starting spam detection.
  * @retval false on error.
  */
-template <class clock_t = std::chrono::steady_clock, class duration_t = std::chrono::milliseconds>
+template <class duration_t = std::chrono::milliseconds>
 auto Run::processElapsed(std::uint32_t& count, std::chrono::time_point<clock_t, duration_t> const& ref, std::uint32_t maxRespawn,
                          std::int64_t minRespawnDelay) const -> bool
 {
