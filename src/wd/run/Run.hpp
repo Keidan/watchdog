@@ -59,7 +59,7 @@ namespace wd::run
                    std::uint32_t maxRespawn, std::int64_t minRespawnDelay) -> bool;
 
     private:
-      constexpr std::uint32_t MINIMUM_COUNT_VALUE = 1;
+      static constexpr std::uint32_t MINIMUM_COUNT_VALUE = 1;
       pid_t m_child = -1;
       wd::utils::rlimit_t& m_limits;
       std::string m_working;
