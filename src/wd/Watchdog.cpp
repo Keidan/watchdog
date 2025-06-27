@@ -13,7 +13,7 @@
 #include <wd/run/Run.hpp>
 #include <wd/utils/Helper.hpp>
 #include <wd/utils/Log.hpp>
-
+#include <cstring>
 /* Usings -------------------------------------------------------------------*/
 using namespace wd;
 
