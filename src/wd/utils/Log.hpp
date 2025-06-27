@@ -9,6 +9,7 @@
 #include <streambuf>
 #include <string_view>
 #include <syslog.h>
+#include <cstdint>
 
 /* Exported type ------------------------------------------------------------*/
 namespace wd::utils
